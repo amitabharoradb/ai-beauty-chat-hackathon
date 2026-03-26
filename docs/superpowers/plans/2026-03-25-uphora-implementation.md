@@ -18,7 +18,7 @@ Set these before running anything:
 UC_CATALOG=amitabh_arora_catalog
 UC_SCHEMA=uphora
 LAKEBASE_PROJECT_ID=uphora-memory
-DATABRICKS_WAREHOUSE_ID=c68d2b4e0786602a   # Serverless Starter Warehouse
+DATABRICKS_WAREHOUSE_ID=9465acf928ae5952   # Serverless Large Warehouse
 # Auth: use Databricks CLI profile fevm-classic-stable-69enm7
 # Set via: export DATABRICKS_CONFIG_PROFILE=fevm-classic-stable-69enm7
 # Inside Databricks Apps, DATABRICKS_HOST and DATABRICKS_TOKEN are injected automatically.
@@ -754,7 +754,7 @@ from databricks.sdk import WorkspaceClient
 
 UC_CATALOG = os.getenv("UC_CATALOG", "amitabh_arora_catalog")
 UC_SCHEMA = os.getenv("UC_SCHEMA", "uphora")
-WAREHOUSE_ID = os.getenv("DATABRICKS_WAREHOUSE_ID", "c68d2b4e0786602a")
+WAREHOUSE_ID = os.getenv("DATABRICKS_WAREHOUSE_ID", "9465acf928ae5952")
 
 def _query_products(where_clause: str = "1=1", limit: int = 10) -> list[dict]:
     """Query products from Unity Catalog via Databricks SQL connector (uses env/profile auth)."""
@@ -1682,7 +1682,7 @@ def _fetch_demo_customers() -> list[dict]:
     UC_SCHEMA = os.getenv("UC_SCHEMA", "uphora")
     with dbsql.connect(
         server_hostname=w.config.host.replace("https://", ""),
-        http_path=f"/sql/1.0/warehouses/{os.getenv('DATABRICKS_WAREHOUSE_ID', 'c68d2b4e0786602a')}",
+        http_path=f"/sql/1.0/warehouses/{os.getenv('DATABRICKS_WAREHOUSE_ID', '9465acf928ae5952')}",
         access_token=w.config.token,
     ) as conn:
         with conn.cursor() as cur:
@@ -2382,7 +2382,7 @@ env:
   - name: LAKEBASE_PROJECT_ID
     value: uphora-memory
   - name: DATABRICKS_WAREHOUSE_ID
-    value: c68d2b4e0786602a
+    value: 9465acf928ae5952
 # Note: DATABRICKS_TOKEN and DATABRICKS_HOST are injected automatically by Databricks Apps.
 # No ANTHROPIC_API_KEY needed — Claude is accessed via Databricks Foundation Model API.
 ```
