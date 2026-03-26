@@ -65,6 +65,12 @@ export function useChat(customerId: string) {
                   { role: "assistant", content: prev[prev.length - 1].content + parsed.text },
                 ]);
               }
+              if (parsed.error) {
+                setMessages((prev) => [
+                  ...prev.slice(0, -1),
+                  { role: "assistant", content: `⚠️ ${parsed.error}` },
+                ]);
+              }
               if (parsed.products) {
                 setProducts(parsed.products);
               }

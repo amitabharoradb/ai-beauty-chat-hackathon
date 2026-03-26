@@ -48,55 +48,43 @@ def list_customers():
 async def chat(request: ChatRequest) -> StreamingResponse:
     async def event_stream():
         try:
-            agent_request = ResponsesAgentRequest(
-                input=[
-                    *[{"role": m.role, "content": m.content} for m in request.history],
-                    {"role": "user", "content": request.message},
-                ],
-                context=ChatContext(conversation_id=request.customer_id),
-            )
-
-            # Run sync agent in thread pool so it doesn't block the event loop
             loop = asyncio.get_event_loop()
 
             def run_agent():
-                results = []
                 try:
-                    event_count = 0
-                    for event in AGENT.predict_stream(agent_request):
-                        event_count += 1
-                        print(f"[agent] event #{event_count}: type={event.type}, item_type={type(event.item).__name__}, item_attrs={[a for a in dir(event.item) if not a.startswith('_')]}")
-                        if event.type == "response.output_item.done":
-                            item = event.item
-                            # Try multiple attribute names
-                            text = getattr(item, "text", None) or getattr(item, "output_text", None) or getattr(item, "content", None)
-                            if text:
-                                results.append(("text", text))
-                            else:
-                                print(f"[agent] item has no text: {item}")
-                    print(f"[agent] predict_stream done, {event_count} events, {len(results)} text chunks")
-                    results.append(("products", AGENT.get_last_products()))
+                    from mlflow.types.responses import ResponsesAgentRequest, ChatContext
+                    agent_request = ResponsesAgentRequest(
+                        input=[
+                            *[{"role": m.role, "content": m.content} for m in request.history],
+                            {"role": "user", "content": request.message},
+                        ],
+                        context=ChatContext(conversation_id=request.customer_id),
+                    )
+                    # predict() uses graph.invoke() internally — no streaming complexity
+                    response = AGENT.predict(agent_request)
+                    # Extract text from output items
+                    text = ""
+                    for item in response.output:
+                        t = getattr(item, "text", None) or getattr(item, "content", None)
+                        if t:
+                            text += t
+                    products = AGENT.get_last_products()
+                    return ("ok", text, products)
                 except Exception as e:
                     import traceback
-                    print(f"[agent] error: {traceback.format_exc()}")
-                    results.append(("error", str(e)))
-                return results
+                    return ("error", f"{traceback.format_exc()}", [])
 
-            results = await loop.run_in_executor(_executor, run_agent)
+            kind, text, products = await loop.run_in_executor(_executor, run_agent)
 
-            for kind, value in results:
-                if kind == "text":
-                    yield f"data: {json.dumps({'text': value})}\n\n"
-                elif kind == "products" and value:
-                    yield f"data: {json.dumps({'products': value[:3]})}\n\n"
-                elif kind == "error":
-                    yield f"data: {json.dumps({'error': value})}\n\n"
+            if kind == "ok":
+                yield f"data: {json.dumps({'text': text})}\n\n"
+                if products:
+                    yield f"data: {json.dumps({'products': products[:3]})}\n\n"
+            else:
+                yield f"data: {json.dumps({'error': text})}\n\n"
 
         except Exception as e:
-            import traceback
-            print(f"[router] /api/chat error: {traceback.format_exc()}")
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
-
         finally:
             yield "data: [DONE]\n\n"
 
