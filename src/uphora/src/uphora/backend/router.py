@@ -16,27 +16,22 @@ UC_SCHEMA = os.getenv("UC_SCHEMA", "uphora_hackathon")
 WAREHOUSE_ID = os.getenv("DATABRICKS_WAREHOUSE_ID", "9465acf928ae5952")
 
 
+# Hardcoded demo customers — avoids SQL warehouse cold-start on page load
+_DEMO_CUSTOMERS = [
+    {"id": "cust_00001", "name": "Ava Chen",        "skin_type": "oily",        "skin_tone": "medium"},
+    {"id": "cust_00002", "name": "Sofia Rossi",      "skin_type": "dry",         "skin_tone": "fair"},
+    {"id": "cust_00003", "name": "Maya Johnson",     "skin_type": "combination", "skin_tone": "light"},
+    {"id": "cust_00004", "name": "Priya Patel",      "skin_type": "sensitive",   "skin_tone": "deep"},
+    {"id": "cust_00005", "name": "Zara Williams",    "skin_type": "normal",      "skin_tone": "tan"},
+    {"id": "cust_00006", "name": "Leila Hassan",     "skin_type": "oily",        "skin_tone": "medium"},
+    {"id": "cust_00007", "name": "Emma Tanaka",      "skin_type": "dry",         "skin_tone": "fair"},
+    {"id": "cust_00008", "name": "Camille Dubois",   "skin_type": "combination", "skin_tone": "light"},
+    {"id": "cust_00009", "name": "Amara Okafor",     "skin_type": "normal",      "skin_tone": "deep"},
+    {"id": "cust_00010", "name": "Isabella Martins", "skin_type": "sensitive",   "skin_tone": "medium"},
+]
+
 def _fetch_demo_customers() -> list[dict]:
-    """Fetch 10 demo customers from Unity Catalog via Databricks SQL."""
-    from databricks.sdk import WorkspaceClient
-    wc = WorkspaceClient()
-    with dbsql.connect(
-        server_hostname=wc.config.host.replace("https://", ""),
-        http_path=f"/sql/1.0/warehouses/{WAREHOUSE_ID}",
-        access_token=wc.config.token,
-    ) as conn:
-        with conn.cursor() as cur:
-            cur.execute(f"""
-                SELECT id, name, skin_type, skin_tone
-                FROM {UC_CATALOG}.{UC_SCHEMA}.customers
-                WHERE id IN (
-                    'cust_00001','cust_00002','cust_00003','cust_00004','cust_00005',
-                    'cust_00006','cust_00007','cust_00008','cust_00009','cust_00010'
-                )
-                ORDER BY id
-            """)
-            cols = [d[0] for d in cur.description]
-            return [dict(zip(cols, row)) for row in cur.fetchall()]
+    return _DEMO_CUSTOMERS
 
 
 @router.get("/customers", response_model=list[CustomerOut], operation_id="listCustomers")
