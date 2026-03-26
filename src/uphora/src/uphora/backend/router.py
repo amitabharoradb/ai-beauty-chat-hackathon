@@ -52,23 +52,51 @@ async def chat(request: ChatRequest) -> StreamingResponse:
 
             def run_agent():
                 try:
-                    from mlflow.types.responses import ResponsesAgentRequest, ChatContext
-                    agent_request = ResponsesAgentRequest(
-                        input=[
-                            *[{"role": m.role, "content": m.content} for m in request.history],
-                            {"role": "user", "content": request.message},
-                        ],
-                        context=ChatContext(conversation_id=request.customer_id),
-                    )
-                    # predict() uses graph.invoke() internally — no streaming complexity
-                    response = AGENT.predict(agent_request)
-                    # Extract text from output items
+                    from langchain_core.messages import HumanMessage
+                    from .agent.memory import load_memory_sync, load_session_summaries_sync
+                    from .agent.graph import build_graph
+                    from databricks_langchain import ChatDatabricks
+
+                    # Load customer memory
+                    memory = load_memory_sync(request.customer_id)
+                    summaries = load_session_summaries_sync(request.customer_id)
+                    if summaries:
+                        memory["session_summaries"] = summaries
+
+                    # Build state
+                    history_msgs = [
+                        HumanMessage(content=m.content) if m.role == "user"
+                        else __import__("langchain_core.messages", fromlist=["AIMessage"]).AIMessage(content=m.content)
+                        for m in request.history
+                    ]
+                    state = {
+                        "customer_id": request.customer_id,
+                        "messages": history_msgs + [HumanMessage(content=request.message)],
+                        "intent": None,
+                        "memory": memory,
+                        "products_found": [],
+                    }
+
+                    # Run graph
+                    llm = ChatDatabricks(endpoint="databricks-claude-sonnet-4-6", max_tokens=1024)
+                    graph = build_graph(llm)
+                    result = graph.invoke(state)
+
+                    # Extract last AI message
+                    messages = result.get("messages", [])
+                    products = result.get("products_found", [])
                     text = ""
-                    for item in response.output:
-                        t = getattr(item, "text", None) or getattr(item, "content", None)
-                        if t:
-                            text += t
-                    products = AGENT.get_last_products()
+                    for msg in reversed(messages):
+                        if hasattr(msg, "content") and getattr(msg, "type", "") == "ai":
+                            text = msg.content
+                            break
+                    if not text:
+                        # fallback: last message
+                        for msg in reversed(messages):
+                            if hasattr(msg, "content") and msg.content:
+                                text = msg.content
+                                break
+
                     return ("ok", text, products)
                 except Exception as e:
                     import traceback
