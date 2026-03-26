@@ -68,6 +68,7 @@ All-in-One Hybrid — the bot adapts per message:
 | SQL warehouse | Serverless Large Warehouse (`9465acf928ae5952`) |
 | LLM | Claude Sonnet 4.6 via Databricks Foundation Model API (`databricks-claude-sonnet-4-6`) — `databricks-sdk` `w.serving_endpoints.query`, no extra API key |
 | Auth | Databricks profile `fevm-classic-stable-69enm7` (local dev); auto-injected inside Databricks Apps |
+| Observability | MLflow 3.0 tracing — `mlflow.langchain.autolog()` captures every LangGraph invocation as a trace |
 | Fake data generation | Spark + Faker |
 
 ---

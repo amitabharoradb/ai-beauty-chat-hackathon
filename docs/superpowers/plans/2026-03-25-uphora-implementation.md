@@ -6,7 +6,7 @@
 
 **Architecture:** LangGraph agent with 5 nodes (memory_loader, intent_router, advisor/shopper/coach, memory_writer) backed by Lakebase Autoscaling (PostgreSQL) for long-term memory and Unity Catalog Delta tables for product/customer data. apx (React + FastAPI) serves the warm-luxury chat UI with customer dropdown and SSE streaming. The graph builds a prompt+context state; FastAPI streams Claude's response directly for real-time token delivery.
 
-**Tech Stack:** Python 3.11+, LangGraph, Databricks Foundation Model API (`databricks-claude-sonnet-4-6` via `databricks-sdk` `w.serving_endpoints.query`), FastAPI, apx (React + Vite), psycopg3, SQLAlchemy async, Databricks SDK ≥0.81, Spark + Faker, Unity Catalog, Lakebase Autoscaling
+**Tech Stack:** Python 3.11+, LangGraph, MLflow 3.0 (`mlflow[genai]`, `mlflow.langchain.autolog()`), Databricks Foundation Model API (`databricks-claude-sonnet-4-6` via `databricks-sdk`), FastAPI, apx (React + Vite), psycopg3, Databricks SDK ≥0.81, Spark + Faker, Unity Catalog, Lakebase Autoscaling
 
 ---
 
@@ -18,10 +18,11 @@ Set these before running anything:
 UC_CATALOG=amitabh_arora_catalog
 UC_SCHEMA=uphora_hackathon
 LAKEBASE_PROJECT_ID=uphora-hackathon-memory
-DATABRICKS_WAREHOUSE_ID=9465acf928ae5952   # Serverless Large Warehouse
+DATABRICKS_WAREHOUSE_ID=9465acf928ae5952      # Serverless Large Warehouse
+MLFLOW_EXPERIMENT_NAME=uphora-beauty-chat     # MLflow 3.0 tracing experiment
 # Auth: use Databricks CLI profile fevm-classic-stable-69enm7
 # Set via: export DATABRICKS_CONFIG_PROFILE=fevm-classic-stable-69enm7
-# Inside Databricks Apps, DATABRICKS_HOST and DATABRICKS_TOKEN are injected automatically.
+# Inside Databricks Apps, DATABRICKS_HOST, DATABRICKS_TOKEN, and MLFLOW_TRACKING_URI are injected automatically.
 ```
 
 ---
@@ -89,6 +90,7 @@ In `src/uphora/pyproject.toml` (or root `pyproject.toml`), add to `[project.depe
 ```toml
 [project]
 dependencies = [
+  "mlflow[genai]>=3.0",
   "langgraph>=0.2.0",
   "databricks-sdk>=0.81.0",
   "psycopg[binary]>=3.0",
@@ -1408,6 +1410,8 @@ Expected: ImportError
 
 ```python
 # src/uphora/backend/agent/graph.py
+import os
+import mlflow
 from langgraph.graph import StateGraph, END
 from .state import AgentState
 from .nodes import (
@@ -1417,6 +1421,13 @@ from .nodes import (
     shopper_node,
     coach_node,
 )
+
+# MLflow 3.0 — auto-traces every LangGraph invocation
+# Tracking URI and credentials are auto-configured inside Databricks Apps.
+# For local dev, set DATABRICKS_CONFIG_PROFILE=fevm-classic-stable-69enm7
+mlflow.langchain.autolog()
+mlflow.set_experiment(os.getenv("MLFLOW_EXPERIMENT_NAME", "uphora-beauty-chat"))
+
 
 def _route_intent(state: AgentState) -> str:
     return state["intent"] or "advisor"
@@ -2383,8 +2394,9 @@ env:
     value: uphora-hackathon-memory
   - name: DATABRICKS_WAREHOUSE_ID
     value: 9465acf928ae5952
-# Note: DATABRICKS_TOKEN and DATABRICKS_HOST are injected automatically by Databricks Apps.
-# No ANTHROPIC_API_KEY needed — Claude is accessed via Databricks Foundation Model API.
+  - name: MLFLOW_EXPERIMENT_NAME
+    value: uphora-beauty-chat
+# DATABRICKS_TOKEN, DATABRICKS_HOST, and MLFLOW_TRACKING_URI are injected automatically by Databricks Apps.
 ```
 
 - [ ] **Step 3: Deploy**
@@ -2419,6 +2431,7 @@ git push
 | UC tables exist with correct row counts | `pytest tests/ -v` (all pass) + Databricks SQL query |
 | Lakebase has 10 demo customers | `python scripts/setup_lakebase.py` → verify count |
 | Agent routes correctly | `pytest tests/test_graph.py -v` |
+| MLflow traces appear | After a chat, run `mlflow.search_traces(experiment_names=["uphora-beauty-chat"])` — expect ≥1 trace |
 | `/api/customers` returns 10 customers | `curl http://localhost:8000/api/customers` |
 | Chat streams tokens | Open app, select customer, send message |
 | Product cards appear | Ask "show me serums" — cards render below response |
