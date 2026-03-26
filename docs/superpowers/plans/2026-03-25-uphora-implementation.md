@@ -16,8 +16,8 @@ Set these before running anything:
 
 ```bash
 UC_CATALOG=amitabh_arora_catalog
-UC_SCHEMA=uphora
-LAKEBASE_PROJECT_ID=uphora-memory
+UC_SCHEMA=uphora_hackathon
+LAKEBASE_PROJECT_ID=uphora-hackathon-memory
 DATABRICKS_WAREHOUSE_ID=9465acf928ae5952   # Serverless Large Warehouse
 # Auth: use Databricks CLI profile fevm-classic-stable-69enm7
 # Set via: export DATABRICKS_CONFIG_PROFILE=fevm-classic-stable-69enm7
@@ -234,7 +234,7 @@ Faker.seed(42)
 random.seed(42)
 
 UC_CATALOG = os.getenv("UC_CATALOG", "amitabh_arora_catalog")  # catalog already exists
-UC_SCHEMA = os.getenv("UC_SCHEMA", "uphora")
+UC_SCHEMA = os.getenv("UC_SCHEMA", "uphora_hackathon")
 
 spark.sql(f"CREATE SCHEMA IF NOT EXISTS {UC_CATALOG}.{UC_SCHEMA}")
 
@@ -385,7 +385,7 @@ import psycopg
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.service.postgres import Project, ProjectSpec
 
-PROJECT_ID = os.getenv("LAKEBASE_PROJECT_ID", "uphora-memory")
+PROJECT_ID = os.getenv("LAKEBASE_PROJECT_ID", "uphora-hackathon-memory")
 DB_NAME = "databricks_postgres"
 
 w = WorkspaceClient()
@@ -753,7 +753,7 @@ from databricks import sql as dbsql
 from databricks.sdk import WorkspaceClient
 
 UC_CATALOG = os.getenv("UC_CATALOG", "amitabh_arora_catalog")
-UC_SCHEMA = os.getenv("UC_SCHEMA", "uphora")
+UC_SCHEMA = os.getenv("UC_SCHEMA", "uphora_hackathon")
 WAREHOUSE_ID = os.getenv("DATABRICKS_WAREHOUSE_ID", "9465acf928ae5952")
 
 def _query_products(where_clause: str = "1=1", limit: int = 10) -> list[dict]:
@@ -910,7 +910,7 @@ import os
 import psycopg
 from databricks.sdk import WorkspaceClient
 
-LAKEBASE_PROJECT_ID = os.getenv("LAKEBASE_PROJECT_ID", "uphora-memory")
+LAKEBASE_PROJECT_ID = os.getenv("LAKEBASE_PROJECT_ID", "uphora-hackathon-memory")
 DB_NAME = "databricks_postgres"
 
 def _get_conn():
@@ -1487,7 +1487,7 @@ import os
 from contextlib import asynccontextmanager
 from databricks.sdk import WorkspaceClient
 
-LAKEBASE_PROJECT_ID = os.getenv("LAKEBASE_PROJECT_ID", "uphora-memory")
+LAKEBASE_PROJECT_ID = os.getenv("LAKEBASE_PROJECT_ID", "uphora-hackathon-memory")
 DB_NAME = "databricks_postgres"
 
 class LakebaseManager:
@@ -1679,7 +1679,7 @@ router = create_router()
 def _fetch_demo_customers() -> list[dict]:
     """Fetch 10 demo customers from Unity Catalog via Databricks SQL."""
     UC_CATALOG = os.getenv("UC_CATALOG", "amitabh_arora_catalog")
-    UC_SCHEMA = os.getenv("UC_SCHEMA", "uphora")
+    UC_SCHEMA = os.getenv("UC_SCHEMA", "uphora_hackathon")
     with dbsql.connect(
         server_hostname=w.config.host.replace("https://", ""),
         http_path=f"/sql/1.0/warehouses/{os.getenv('DATABRICKS_WAREHOUSE_ID', '9465acf928ae5952')}",
@@ -2380,7 +2380,7 @@ env:
   - name: UC_SCHEMA
     value: uphora
   - name: LAKEBASE_PROJECT_ID
-    value: uphora-memory
+    value: uphora-hackathon-memory
   - name: DATABRICKS_WAREHOUSE_ID
     value: 9465acf928ae5952
 # Note: DATABRICKS_TOKEN and DATABRICKS_HOST are injected automatically by Databricks Apps.
