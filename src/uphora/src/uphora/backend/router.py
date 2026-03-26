@@ -1,5 +1,7 @@
 import json
 import os
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from databricks import sql as dbsql
 from fastapi.responses import StreamingResponse
 from mlflow.types.responses import ResponsesAgentRequest, ChatContext
@@ -8,6 +10,8 @@ from .models import CustomerOut, ChatRequest
 from .agent.agent import AGENT
 from .agent.memory import save_memory_sync
 from .db import db_manager
+
+_executor = ThreadPoolExecutor(max_workers=4)
 
 router = create_router()
 
@@ -43,37 +47,48 @@ def list_customers():
 @router.post("/chat", operation_id="chat")
 async def chat(request: ChatRequest) -> StreamingResponse:
     async def event_stream():
-        # Build ResponsesAgentRequest (Mosaic AI Agent Framework)
-        agent_request = ResponsesAgentRequest(
-            input=[
-                *[{"role": m.role, "content": m.content} for m in request.history],
-                {"role": "user", "content": request.message},
-            ],
-            context=ChatContext(conversation_id=request.customer_id),
-        )
+        try:
+            agent_request = ResponsesAgentRequest(
+                input=[
+                    *[{"role": m.role, "content": m.content} for m in request.history],
+                    {"role": "user", "content": request.message},
+                ],
+                context=ChatContext(conversation_id=request.customer_id),
+            )
 
-        # Stream via UphoraBeautyAgent.predict_stream()
-        for event in AGENT.predict_stream(agent_request):
-            if event.type == "response.output_item.done" and hasattr(event.item, "text"):
-                yield f"data: {json.dumps({'text': event.item.text})}\n\n"
+            # Run sync agent in thread pool so it doesn't block the event loop
+            loop = asyncio.get_event_loop()
 
-        # Yield product cards
-        products = AGENT.get_last_products()
-        if products:
-            yield f"data: {json.dumps({'products': products[:3]})}\n\n"
+            def run_agent():
+                results = []
+                try:
+                    for event in AGENT.predict_stream(agent_request):
+                        if event.type == "response.output_item.done" and hasattr(event.item, "text"):
+                            results.append(("text", event.item.text))
+                    results.append(("products", AGENT.get_last_products()))
+                except Exception as e:
+                    import traceback
+                    print(f"[agent] error: {traceback.format_exc()}")
+                    results.append(("error", str(e)))
+                return results
 
-        # Persist memory delta
-        recommended_ids = [p["id"] for p in products]
-        if recommended_ids:
-            memory = {}
-            delta = {"product_history": {
-                "recommended": recommended_ids,
-                "liked": [],
-                "disliked": [],
-            }}
-            save_memory_sync(request.customer_id, memory, delta)
+            results = await loop.run_in_executor(_executor, run_agent)
 
-        yield "data: [DONE]\n\n"
+            for kind, value in results:
+                if kind == "text":
+                    yield f"data: {json.dumps({'text': value})}\n\n"
+                elif kind == "products" and value:
+                    yield f"data: {json.dumps({'products': value[:3]})}\n\n"
+                elif kind == "error":
+                    yield f"data: {json.dumps({'error': value})}\n\n"
+
+        except Exception as e:
+            import traceback
+            print(f"[router] /api/chat error: {traceback.format_exc()}")
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+        finally:
+            yield "data: [DONE]\n\n"
 
     return StreamingResponse(
         event_stream(),
