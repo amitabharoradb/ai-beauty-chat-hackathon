@@ -62,9 +62,19 @@ async def chat(request: ChatRequest) -> StreamingResponse:
             def run_agent():
                 results = []
                 try:
+                    event_count = 0
                     for event in AGENT.predict_stream(agent_request):
-                        if event.type == "response.output_item.done" and hasattr(event.item, "text"):
-                            results.append(("text", event.item.text))
+                        event_count += 1
+                        print(f"[agent] event #{event_count}: type={event.type}, item_type={type(event.item).__name__}, item_attrs={[a for a in dir(event.item) if not a.startswith('_')]}")
+                        if event.type == "response.output_item.done":
+                            item = event.item
+                            # Try multiple attribute names
+                            text = getattr(item, "text", None) or getattr(item, "output_text", None) or getattr(item, "content", None)
+                            if text:
+                                results.append(("text", text))
+                            else:
+                                print(f"[agent] item has no text: {item}")
+                    print(f"[agent] predict_stream done, {event_count} events, {len(results)} text chunks")
                     results.append(("products", AGENT.get_last_products()))
                 except Exception as e:
                     import traceback

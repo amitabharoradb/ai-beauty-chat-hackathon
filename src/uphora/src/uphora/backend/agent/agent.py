@@ -56,15 +56,24 @@ class UphoraBeautyAgent(ResponsesAgent):
 
         self._last_products = []
 
-        for event in self._graph.stream(state, stream_mode=["updates"]):
-            if event[0] == "updates":
-                for node_name, node_data in event[1].items():
-                    if node_data.get("products_found"):
-                        self._last_products = node_data["products_found"]
-                    if node_data.get("messages"):
-                        yield from output_to_responses_items_stream(
-                            node_data["messages"]
-                        )
+        # Use invoke (simpler and version-agnostic) instead of stream
+        result = self._graph.invoke(state)
+
+        # Extract products
+        if result.get("products_found"):
+            self._last_products = result["products_found"]
+
+        # Extract the last AI message and yield it
+        messages_out = result.get("messages", [])
+        ai_messages = [m for m in messages_out if hasattr(m, "content") and not hasattr(m, "type") or (hasattr(m, "type") and m.type == "ai")]
+        # Fallback: just get the last message that isn't the user input
+        if not ai_messages:
+            ai_messages = [m for m in messages_out if hasattr(m, "content")]
+
+        if ai_messages:
+            last_msg = ai_messages[-1]
+            text = last_msg.content if hasattr(last_msg, "content") else str(last_msg)
+            yield from output_to_responses_items_stream([last_msg])
 
     def get_last_products(self) -> list[dict]:
         """Return products found in the most recent predict_stream call."""
