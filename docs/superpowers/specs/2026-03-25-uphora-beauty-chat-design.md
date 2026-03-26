@@ -65,7 +65,7 @@ All-in-One Hybrid — the bot adapts per message:
 | Agent deployment | Databricks Apps (apx — React + FastAPI) |
 | Memory store | Databricks Lakebase Autoscaling (PostgreSQL) |
 | Product/customer data | Unity Catalog (Delta tables) |
-| LLM | Claude 3.5 Sonnet via Anthropic SDK |
+| LLM | Claude Sonnet 4.6 (`claude-sonnet-4-6`) via Anthropic SDK |
 | Fake data generation | Spark + Faker |
 
 ---
