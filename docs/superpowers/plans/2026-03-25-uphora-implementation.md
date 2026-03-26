@@ -6,7 +6,7 @@
 
 **Architecture:** LangGraph agent with 5 nodes (memory_loader, intent_router, advisor/shopper/coach, memory_writer) backed by Lakebase Autoscaling (PostgreSQL) for long-term memory and Unity Catalog Delta tables for product/customer data. apx (React + FastAPI) serves the warm-luxury chat UI with customer dropdown and SSE streaming. The graph builds a prompt+context state; FastAPI streams Claude's response directly for real-time token delivery.
 
-**Tech Stack:** Python 3.11+, LangGraph, Anthropic SDK (claude-sonnet-4-6), FastAPI, apx (React + Vite), psycopg3, SQLAlchemy async, Databricks SDK ≥0.81, Spark + Faker, Unity Catalog, Lakebase Autoscaling
+**Tech Stack:** Python 3.11+, LangGraph, Databricks Foundation Model API (`databricks-claude-sonnet-4-6`, OpenAI-compatible), FastAPI, apx (React + Vite), psycopg3, SQLAlchemy async, Databricks SDK ≥0.81, Spark + Faker, Unity Catalog, Lakebase Autoscaling
 
 ---
 
@@ -15,7 +15,6 @@
 Set these before running anything:
 
 ```bash
-ANTHROPIC_API_KEY=sk-ant-...
 UC_CATALOG=main                  # Unity Catalog catalog name
 UC_SCHEMA=uphora                 # Unity Catalog schema name
 LAKEBASE_PROJECT_ID=uphora-memory
@@ -89,7 +88,7 @@ In `src/uphora/pyproject.toml` (or root `pyproject.toml`), add to `[project.depe
 ```toml
 [project]
 dependencies = [
-  "anthropic>=0.40.0",
+  "openai>=1.50.0",
   "langgraph>=0.2.0",
   "databricks-sdk>=0.81.0",
   "psycopg[binary]>=3.0",
@@ -1613,7 +1612,7 @@ def test_list_customers_returns_10(client):
 
 def test_chat_returns_sse_stream(client, sample_customer_memory, sample_products):
     with patch("src.uphora.backend.router.GRAPH") as mock_graph, \
-         patch("src.uphora.backend.router.anthropic_client") as mock_client, \
+         patch("src.uphora.backend.router.openai_client") as mock_client, \
          patch("src.uphora.backend.router.save_memory", AsyncMock()):
 
         # Mock graph.ainvoke
@@ -1626,15 +1625,17 @@ def test_chat_returns_sse_stream(client, sample_customer_memory, sample_products
             "session_id": "test-session",
         })
 
-        # Mock streaming response
-        mock_stream_ctx = MagicMock()
-        mock_stream_ctx.__enter__ = MagicMock(return_value=mock_stream_ctx)
-        mock_stream_ctx.__exit__ = MagicMock(return_value=False)
-        mock_stream_ctx.text_stream = iter(["Hello ", "there!"])
-        mock_stream_ctx.get_final_message.return_value = MagicMock(
-            content=[MagicMock(text="Hello there!")]
-        )
-        mock_client.messages.stream.return_value = mock_stream_ctx
+        # Mock OpenAI streaming chunks
+        def make_chunk(text):
+            chunk = MagicMock()
+            chunk.choices = [MagicMock()]
+            chunk.choices[0].delta.content = text
+            return chunk
+
+        mock_client.chat.completions.create.return_value = iter([
+            make_chunk("Hello "),
+            make_chunk("there!"),
+        ])
 
         resp = client.post("/api/chat", json={
             "customer_id": "cust_00001",
@@ -1660,7 +1661,7 @@ Expected: ImportError or 404
 # src/uphora/backend/router.py
 import json
 import os
-import anthropic
+from openai import OpenAI
 from fastapi import Request
 from fastapi.responses import StreamingResponse
 from .core import create_router
@@ -1671,7 +1672,12 @@ from .db import db_manager
 import psycopg
 
 GRAPH = build_graph()
-anthropic_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+# Databricks Foundation Model API — OpenAI-compatible, no separate API key needed
+openai_client = OpenAI(
+    api_key=os.getenv("DATABRICKS_TOKEN"),
+    base_url=f"{os.getenv('DATABRICKS_HOST', '').rstrip('/')}/serving-endpoints",
+)
 
 router = create_router()
 
@@ -1717,18 +1723,22 @@ async def chat(request: ChatRequest) -> StreamingResponse:
         ]
         final_state = await GRAPH.ainvoke(state)
 
-        # 2. Stream Claude response token by token
+        # 2. Stream Claude response token by token via Databricks Foundation Model API
         full_response = ""
-        with anthropic_client.messages.stream(
-            model="claude-sonnet-4-6",
-            system=final_state["system_prompt"],
-            messages=final_state["claude_messages"],
+        stream = openai_client.chat.completions.create(
+            model="databricks-claude-sonnet-4-6",
+            messages=[
+                {"role": "system", "content": final_state["system_prompt"]},
+                *final_state["claude_messages"],
+            ],
             max_tokens=1024,
-        ) as stream:
-            for text in stream.text_stream:
+            stream=True,
+        )
+        for chunk in stream:
+            text = chunk.choices[0].delta.content or ""
+            if text:
                 full_response += text
                 yield f"data: {json.dumps({'text': text})}\n\n"
-            final_msg = stream.get_final_message()
 
         # 3. Yield product cards
         products = final_state.get("products_found", [])
@@ -2378,22 +2388,13 @@ env:
     value: uphora
   - name: LAKEBASE_PROJECT_ID
     value: uphora-memory
-  - name: ANTHROPIC_API_KEY
-    valueFrom:
-      secretScope: uphora-secrets
-      secretKey: anthropic-api-key
   - name: DATABRICKS_WAREHOUSE_ID
     value: <your-warehouse-id>
+# Note: DATABRICKS_TOKEN and DATABRICKS_HOST are injected automatically by Databricks Apps.
+# No ANTHROPIC_API_KEY needed — Claude is accessed via Databricks Foundation Model API.
 ```
 
-- [ ] **Step 3: Store Anthropic API key as Databricks secret**
-
-```bash
-databricks secrets create-scope uphora-secrets
-databricks secrets put-secret uphora-secrets anthropic-api-key --string-value "$ANTHROPIC_API_KEY"
-```
-
-- [ ] **Step 4: Deploy**
+- [ ] **Step 3: Deploy**
 
 ```bash
 databricks apps create uphora --description "Uphora AI Beauty Chatbot"
