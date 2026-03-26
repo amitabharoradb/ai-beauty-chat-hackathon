@@ -107,34 +107,48 @@ All-in-One Hybrid — the bot adapts per message:
 │     Warm luxury UI (cream/gold/charcoal)    │
 │     Customer dropdown (5-10 demo users)     │
 └──────────────────┬──────────────────────────┘
-                   │ customer_id + message
+                   │ ResponsesAgentRequest
+                   │ (customer_id via ChatContext)
 ┌──────────────────▼──────────────────────────┐
-│         LangGraph Agent (Python)            │
+│  UphoraBeautyAgent(ResponsesAgent)          │
+│  Mosaic AI Agent Framework — MLflow 3.0     │
+│  predict_stream() → ResponsesAgentStreamEvent│
 │                                             │
-│  memory_loader → intent_router              │
-│       ↓              ↓                      │
-│  advisor_node  shopper_node  coach_node     │
-│       ↓                                     │
-│  memory_writer                              │
+│  ┌─────────────────────────────────────┐    │
+│  │  LangGraph Graph                    │    │
+│  │  memory_loader → intent_router      │    │
+│  │       ↓              ↓              │    │
+│  │  advisor  shopper  coach            │    │
+│  │  (each calls ChatDatabricks LLM)    │    │
+│  └─────────────────────────────────────┘    │
+│  mlflow.langchain.autolog() traces all      │
 └──────┬──────────────────────────────────────┘
+       │
+┌──────▼──────────────────────────────────────┐
+│  ChatDatabricks(databricks-claude-sonnet-4-6)│
+│  Databricks Foundation Model API            │
+└─────────────────────────────────────────────┘
        │
 ┌──────▼──────────────────────────────────────┐
 │   Lakebase Autoscaling (long-term memory)   │
+│   project: uphora-hackathon-memory          │
 └──────┬──────────────────────────────────────┘
        │
 ┌──────▼──────────────────────────────────────┐
-│   Unity Catalog (customers + products)      │
+│   Unity Catalog                             │
+│   amitabh_arora_catalog.uphora_hackathon    │
 └─────────────────────────────────────────────┘
 ```
 
 ## Agent Tools
 
-| Tool | Description |
-|------|------------|
-| `search_products(query, category, filters)` | Queries Unity Catalog product tables |
-| `get_customer_memory(customer_id)` | Reads Lakebase long-term memory |
-| `update_memory(customer_id, delta)` | Upserts deltas to Lakebase |
-| `get_routine(customer_id)` | Retrieves saved AM/PM routines |
+| Function | Used by | Description |
+|----------|---------|------------|
+| `search_products(query, category, filters)` | advisor/shopper nodes | Queries Unity Catalog via Databricks SQL |
+| `get_routine(memory)` | coach node | Extracts AM/PM routine from loaded memory |
+| `load_memory_sync(customer_id)` | memory_loader node | Reads Lakebase long-term memory |
+| `save_memory_sync(customer_id, memory, delta)` | FastAPI router (post-stream) | Upserts memory delta to Lakebase |
+| `load_session_summaries_sync(customer_id)` | memory_loader node | Fetches last 5 session summaries |
 
 ---
 

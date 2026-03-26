@@ -122,16 +122,7 @@ Expected: no errors.
 
 ```python
 import pytest
-from unittest.mock import MagicMock, AsyncMock
-
-@pytest.fixture
-def mock_anthropic(mocker):
-    """Mock Anthropic client — returns a canned response."""
-    client = MagicMock()
-    message = MagicMock()
-    message.content = [MagicMock(text="Here are my recommendations for your skin.")]
-    client.messages.create.return_value = message
-    return client
+from unittest.mock import MagicMock
 
 @pytest.fixture
 def mock_db_conn(mocker):
@@ -850,13 +841,14 @@ git commit -m "feat: agent tools (search_products, get_routine)"
 
 ```python
 # tests/test_memory.py
+# Tests use the sync versions (load_memory_sync / save_memory_sync) since those
+# are called from LangGraph nodes. The async wrappers delegate to the same _impl.
 import json
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-from src.uphora.backend.agent.memory import load_memory, save_memory
+from unittest.mock import MagicMock, patch
+from src.uphora.backend.agent.memory import load_memory_sync, save_memory_sync
 
-@pytest.mark.asyncio
-async def test_load_memory_returns_dict(mock_db_conn, sample_customer_memory):
+def test_load_memory_sync_returns_dict(mock_db_conn, sample_customer_memory):
     conn, cursor = mock_db_conn
     cursor.fetchone.return_value = (
         sample_customer_memory["skin_profile"],
@@ -867,26 +859,23 @@ async def test_load_memory_returns_dict(mock_db_conn, sample_customer_memory):
         sample_customer_memory["category_affinities"],
     )
     with patch("src.uphora.backend.agent.memory._get_conn", return_value=conn):
-        memory = await load_memory("cust_00001")
+        memory = load_memory_sync("cust_00001")
     assert memory["skin_profile"]["type"] == "oily"
     assert "goals" in memory
     assert "preferences" in memory
 
-@pytest.mark.asyncio
-async def test_load_memory_returns_empty_for_unknown_customer(mock_db_conn):
+def test_load_memory_sync_returns_empty_for_unknown_customer(mock_db_conn):
     conn, cursor = mock_db_conn
     cursor.fetchone.return_value = None
     with patch("src.uphora.backend.agent.memory._get_conn", return_value=conn):
-        memory = await load_memory("unknown_customer")
+        memory = load_memory_sync("unknown_customer")
     assert memory == {}
 
-@pytest.mark.asyncio
-async def test_save_memory_upserts(mock_db_conn, sample_customer_memory):
+def test_save_memory_sync_upserts(mock_db_conn, sample_customer_memory):
     conn, cursor = mock_db_conn
     delta = {"product_history": {"recommended": ["prod_001"], "liked": [], "disliked": []}}
     with patch("src.uphora.backend.agent.memory._get_conn", return_value=conn):
-        await save_memory("cust_00001", sample_customer_memory, delta)
-    # Verify execute was called (upsert)
+        save_memory_sync("cust_00001", sample_customer_memory, delta)
     assert cursor.execute.called
 ```
 
@@ -1707,7 +1696,7 @@ git commit -m "feat: lakebase connection manager + API models"
 # tests/test_router.py
 import json
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 
 @pytest.fixture
