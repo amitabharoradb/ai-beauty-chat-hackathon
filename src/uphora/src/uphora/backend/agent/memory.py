@@ -1,10 +1,7 @@
 import json
 import os
 
-try:
-    import psycopg
-except ImportError:
-    psycopg = None
+import psycopg
 
 from databricks.sdk import WorkspaceClient
 
@@ -78,6 +75,9 @@ def _save_memory_impl(customer_id: str, memory: dict, delta: dict) -> None:
                      product_history, category_affinities, updated_at)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
                 ON CONFLICT (customer_id) DO UPDATE SET
+                    skin_profile         = EXCLUDED.skin_profile,
+                    goals                = EXCLUDED.goals,
+                    preferences          = EXCLUDED.preferences,
                     product_history      = EXCLUDED.product_history,
                     routines             = EXCLUDED.routines,
                     category_affinities  = EXCLUDED.category_affinities,

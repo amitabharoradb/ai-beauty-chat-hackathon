@@ -1,35 +1,31 @@
 import os
 
+from databricks import sql as dbsql
+from databricks.sdk import WorkspaceClient
+
 UC_CATALOG = os.getenv("UC_CATALOG", "amitabh_arora_catalog")
 UC_SCHEMA = os.getenv("UC_SCHEMA", "uphora_hackathon")
 WAREHOUSE_ID = os.getenv("DATABRICKS_WAREHOUSE_ID", "9465acf928ae5952")
 
 def _query_products(where_clause: str = "1=1", limit: int = 10) -> list[dict]:
     """Query products from Unity Catalog via Databricks SQL connector (uses env/profile auth)."""
-    try:
-        from databricks.sdk import WorkspaceClient
-        import databricks.sql as dbsql
-
-        w = WorkspaceClient()
-        with dbsql.connect(
-            server_hostname=w.config.host.replace("https://", ""),
-            http_path=f"/sql/1.0/warehouses/{WAREHOUSE_ID}",
-            access_token=w.config.token,
-        ) as conn:
-            with conn.cursor() as cur:
-                cur.execute(f"""
-                    SELECT id, category_id, name, description, price,
-                           key_ingredients, benefits, tags
-                    FROM {UC_CATALOG}.{UC_SCHEMA}.products
-                    WHERE {where_clause}
-                    LIMIT {limit}
-                """)
-                cols = [d[0] for d in cur.description]
-                rows = cur.fetchall()
-        return [dict(zip(cols, row)) for row in rows]
-    except ImportError:
-        # Fallback for test environments
-        return []
+    w = WorkspaceClient()
+    with dbsql.connect(
+        server_hostname=w.config.host.replace("https://", ""),
+        http_path=f"/sql/1.0/warehouses/{WAREHOUSE_ID}",
+        access_token=w.config.token,
+    ) as conn:
+        with conn.cursor() as cur:
+            cur.execute(f"""
+                SELECT id, category_id, name, description, price,
+                       key_ingredients, benefits, tags
+                FROM {UC_CATALOG}.{UC_SCHEMA}.products
+                WHERE {where_clause}
+                LIMIT {limit}
+            """)
+            cols = [d[0] for d in cur.description]
+            rows = cur.fetchall()
+    return [dict(zip(cols, row)) for row in rows]
 
 
 def search_products(
