@@ -33,6 +33,9 @@ app-entrypoint = "uphora.backend.app:app"
 api-prefix = "/api"
 metadata-path = "src/uphora/_metadata.py"
 
+[tool.apx.ui]
+root = "src/uphora/ui"
+
 [build-system]
 requires = ["hatchling", "uv-dynamic-versioning>=0.7.0"]
 build-backend = "hatchling.build"
