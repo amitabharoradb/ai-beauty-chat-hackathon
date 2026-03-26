@@ -36,6 +36,7 @@ async def _chain_dep_lifespans(
 def create_app(
     *,
     routers: list[APIRouter] | None = None,
+    lifespan=None,
 ) -> FastAPI:
     """Create and configure a FastAPI application.
 
@@ -45,6 +46,7 @@ def create_app(
 
     Args:
         routers: List of APIRouter instances to include in the app.
+        lifespan: Optional async context manager for app lifespan events.
 
     Returns:
         Configured FastAPI application instance.
@@ -57,12 +59,15 @@ def create_app(
             logger.error(f"Failed to instantiate dependency {dep.__name__}: {e}")
             raise e
 
-    @asynccontextmanager
-    async def _composed_lifespan(app: FastAPI):
-        async with _chain_dep_lifespans(all_deps, app):
-            yield
+    if lifespan is not None:
+        _app_lifespan = lifespan
+    else:
+        @asynccontextmanager
+        async def _app_lifespan(app: FastAPI):
+            async with _chain_dep_lifespans(all_deps, app):
+                yield
 
-    app = FastAPI(title=app_name, lifespan=_composed_lifespan)
+    app = FastAPI(title=app_name, lifespan=_app_lifespan)
 
     api_router: APIRouter = create_router()
     for dep in all_deps:
