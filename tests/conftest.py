@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import MagicMock
 
 @pytest.fixture
-def mock_db_conn(mocker):
+def mock_db_conn():
     """Mock psycopg synchronous connection (psycopg uses sync context managers)."""
     conn = MagicMock()
     cursor = MagicMock()
