@@ -1,0 +1,2156 @@
+version = 1
+revision = 1
+requires-python = ">=3.11"
+resolution-markers = [
+    "python_full_version >= '3.13'",
+    "python_full_version == '3.12.*'",
+    "python_full_version < '3.12'",
+]
+
+[[package]]
+name = "aiohappyeyeballs"
+version = "2.6.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "aiohappyeyeballs-2.6.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "aiohttp"
+version = "3.13.3"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "aiohappyeyeballs" },
+    { name = "aiosignal" },
+    { name = "attrs" },
+    { name = "frozenlist" },
+    { name = "multidict" },
+    { name = "propcache" },
+    { name = "yarl" },
+]
+wheels = [
+    { path = "aiohttp-3.13.3-py3-none-any.whl" },
+]
+
+[[package]]
+name = "aiohttp-retry"
+version = "2.9.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "aiohttp" },
+]
+wheels = [
+    { path = "aiohttp_retry-2.9.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "aiosignal"
+version = "1.4.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "frozenlist" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+]
+wheels = [
+    { path = "aiosignal-1.4.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "alembic"
+version = "1.16.5"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "mako" },
+    { name = "sqlalchemy" },
+    { name = "typing-extensions" },
+]
+wheels = [
+    { path = "alembic-1.16.5-py3-none-any.whl" },
+]
+
+[[package]]
+name = "annotated-doc"
+version = "0.0.4"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "annotated_doc-0.0.4-py3-none-any.whl" },
+]
+
+[[package]]
+name = "annotated-types"
+version = "0.7.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "annotated_types-0.7.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "anyio"
+version = "4.9.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "idna" },
+    { name = "sniffio" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+]
+wheels = [
+    { path = "anyio-4.9.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "attrs"
+version = "25.4.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "attrs-25.4.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "blinker"
+version = "1.9.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "blinker-1.9.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "boto3"
+version = "1.39.3"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "botocore" },
+    { name = "jmespath" },
+    { name = "s3transfer" },
+]
+wheels = [
+    { path = "boto3-1.39.3-py3-none-any.whl" },
+]
+
+[[package]]
+name = "botocore"
+version = "1.39.3"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "jmespath" },
+    { name = "python-dateutil" },
+    { name = "urllib3" },
+]
+wheels = [
+    { path = "botocore-1.39.3-py3-none-any.whl" },
+]
+
+[[package]]
+name = "cachetools"
+version = "7.0.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "cachetools-7.0.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "certifi"
+version = "2026.2.25"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "certifi-2026.2.25-py3-none-any.whl" },
+]
+
+[[package]]
+name = "cffi"
+version = "2.0.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "pycparser", marker = "implementation_name != 'PyPy'" },
+]
+wheels = [
+    { path = "cffi-2.0.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "charset-normalizer"
+version = "3.4.6"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "charset_normalizer-3.4.6-py3-none-any.whl" },
+]
+
+[[package]]
+name = "click"
+version = "8.3.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+]
+wheels = [
+    { path = "click-8.3.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "cloudpickle"
+version = "3.1.2"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "cloudpickle-3.1.2-py3-none-any.whl" },
+]
+
+[[package]]
+name = "colorama"
+version = "0.4.6"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "colorama-0.4.6-py3-none-any.whl" },
+]
+
+[[package]]
+name = "contourpy"
+version = "1.3.2"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "numpy" },
+]
+wheels = [
+    { path = "contourpy-1.3.2-py3-none-any.whl" },
+]
+
+[[package]]
+name = "cryptography"
+version = "46.0.5"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "cffi", marker = "platform_python_implementation != 'PyPy'" },
+]
+wheels = [
+    { path = "cryptography-46.0.5-py3-none-any.whl" },
+]
+
+[[package]]
+name = "cycler"
+version = "0.12.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "cycler-0.12.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "databricks-ai-bridge"
+version = "0.17.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "databricks-sdk" },
+    { name = "databricks-vectorsearch" },
+    { name = "mlflow-skinny" },
+    { name = "pandas" },
+    { name = "pydantic" },
+    { name = "tabulate" },
+    { name = "tiktoken" },
+    { name = "typing-extensions" },
+]
+wheels = [
+    { path = "databricks_ai_bridge-0.17.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "databricks-connect"
+version = "16.1.7"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "databricks-sdk" },
+    { name = "googleapis-common-protos" },
+    { name = "grpcio" },
+    { name = "grpcio-status" },
+    { name = "numpy" },
+    { name = "packaging" },
+    { name = "pandas" },
+    { name = "py4j" },
+    { name = "pyarrow" },
+    { name = "setuptools" },
+    { name = "six" },
+]
+wheels = [
+    { path = "databricks_connect-16.1.7-py3-none-any.whl" },
+]
+
+[[package]]
+name = "databricks-langchain"
+version = "0.17.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "databricks-ai-bridge" },
+    { name = "databricks-mcp" },
+    { name = "databricks-openai" },
+    { name = "databricks-sdk" },
+    { name = "databricks-vectorsearch" },
+    { name = "langchain" },
+    { name = "langchain-mcp-adapters" },
+    { name = "mlflow" },
+    { name = "openai" },
+    { name = "pydantic" },
+    { name = "unitycatalog-langchain", extra = ["databricks"] },
+]
+wheels = [
+    { path = "databricks_langchain-0.17.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "databricks-mcp"
+version = "0.9.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "databricks-ai-bridge" },
+    { name = "databricks-sdk" },
+    { name = "mcp" },
+    { name = "mlflow" },
+]
+wheels = [
+    { path = "databricks_mcp-0.9.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "databricks-openai"
+version = "0.13.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "databricks-ai-bridge" },
+    { name = "databricks-mcp" },
+    { name = "databricks-vectorsearch" },
+    { name = "mlflow" },
+    { name = "openai" },
+    { name = "openai-agents" },
+    { name = "pydantic" },
+    { name = "unitycatalog-openai", extra = ["databricks"] },
+]
+wheels = [
+    { path = "databricks_openai-0.13.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "databricks-sdk"
+version = "0.102.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "google-auth" },
+    { name = "protobuf" },
+    { name = "requests" },
+]
+wheels = [
+    { path = "databricks_sdk-0.102.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "databricks-vectorsearch"
+version = "0.66"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "deprecation" },
+    { name = "mlflow-skinny" },
+    { name = "protobuf" },
+    { name = "requests" },
+]
+wheels = [
+    { path = "databricks_vectorsearch-0.66-py3-none-any.whl" },
+]
+
+[[package]]
+name = "dataclasses-json"
+version = "0.6.7"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "marshmallow" },
+    { name = "typing-inspect" },
+]
+wheels = [
+    { path = "dataclasses_json-0.6.7-py3-none-any.whl" },
+]
+
+[[package]]
+name = "deprecation"
+version = "2.1.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "deprecation-2.1.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "distro"
+version = "1.9.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "distro-1.9.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "docker"
+version = "7.1.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "pywin32", marker = "sys_platform == 'win32'" },
+    { name = "requests" },
+    { name = "urllib3" },
+]
+wheels = [
+    { path = "docker-7.1.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "faker"
+version = "40.11.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "tzdata", marker = "sys_platform == 'win32'" },
+]
+wheels = [
+    { path = "faker-40.11.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "fastapi"
+version = "0.135.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "annotated-doc" },
+    { name = "pydantic" },
+    { name = "starlette" },
+    { name = "typing-extensions" },
+    { name = "typing-inspection" },
+]
+wheels = [
+    { path = "fastapi-0.135.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "fastuuid"
+version = "0.14.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "fastuuid-0.14.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "filelock"
+version = "3.20.3"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "filelock-3.20.3-py3-none-any.whl" },
+]
+
+[[package]]
+name = "flask"
+version = "3.1.2"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "blinker" },
+    { name = "click" },
+    { name = "itsdangerous" },
+    { name = "jinja2" },
+    { name = "markupsafe" },
+    { name = "werkzeug" },
+]
+wheels = [
+    { path = "flask-3.1.2-py3-none-any.whl" },
+]
+
+[[package]]
+name = "flask-cors"
+version = "6.0.2"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "flask" },
+    { name = "werkzeug" },
+]
+wheels = [
+    { path = "flask_cors-6.0.2-py3-none-any.whl" },
+]
+
+[[package]]
+name = "fonttools"
+version = "4.58.5"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "fonttools-4.58.5-py3-none-any.whl" },
+]
+
+[[package]]
+name = "frozenlist"
+version = "1.8.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "frozenlist-1.8.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "fsspec"
+version = "2026.2.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "fsspec-2026.2.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "gepa"
+version = "0.0.26"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "gepa-0.0.26-py3-none-any.whl" },
+]
+
+[[package]]
+name = "gitdb"
+version = "4.0.12"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "smmap" },
+]
+wheels = [
+    { path = "gitdb-4.0.12-py3-none-any.whl" },
+]
+
+[[package]]
+name = "gitpython"
+version = "3.1.44"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "gitdb" },
+]
+wheels = [
+    { path = "gitpython-3.1.44-py3-none-any.whl" },
+]
+
+[[package]]
+name = "google-auth"
+version = "2.49.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "cryptography" },
+    { name = "pyasn1-modules" },
+]
+wheels = [
+    { path = "google_auth-2.49.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "googleapis-common-protos"
+version = "1.72.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "protobuf" },
+]
+wheels = [
+    { path = "googleapis_common_protos-1.72.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "graphene"
+version = "3.4.3"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "graphql-core" },
+    { name = "graphql-relay" },
+    { name = "python-dateutil" },
+    { name = "typing-extensions" },
+]
+wheels = [
+    { path = "graphene-3.4.3-py3-none-any.whl" },
+]
+
+[[package]]
+name = "graphql-core"
+version = "3.2.5"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "graphql_core-3.2.5-py3-none-any.whl" },
+]
+
+[[package]]
+name = "graphql-relay"
+version = "3.2.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "graphql_relay-3.2.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "greenlet"
+version = "3.2.3"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "greenlet-3.2.3-py3-none-any.whl" },
+]
+
+[[package]]
+name = "griffe"
+version = "1.15.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "colorama" },
+]
+wheels = [
+    { path = "griffe-1.15.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "grpcio"
+version = "1.76.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+wheels = [
+    { path = "grpcio-1.76.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "grpcio-status"
+version = "1.76.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "googleapis-common-protos" },
+    { name = "grpcio" },
+    { name = "protobuf" },
+]
+wheels = [
+    { path = "grpcio_status-1.76.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "gunicorn"
+version = "23.0.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "packaging" },
+]
+wheels = [
+    { path = "gunicorn-23.0.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "h11"
+version = "0.16.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "h11-0.16.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "httpcore"
+version = "1.0.9"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "certifi" },
+    { name = "h11" },
+]
+wheels = [
+    { path = "httpcore-1.0.9-py3-none-any.whl" },
+]
+
+[[package]]
+name = "httptools"
+version = "0.7.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "httptools-0.7.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "httpx"
+version = "0.28.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "anyio" },
+    { name = "certifi" },
+    { name = "httpcore" },
+    { name = "idna" },
+]
+wheels = [
+    { path = "httpx-0.28.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "httpx-sse"
+version = "0.4.3"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "httpx_sse-0.4.3-py3-none-any.whl" },
+]
+
+[[package]]
+name = "huey"
+version = "2.6.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "huey-2.6.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "huggingface-hub"
+version = "1.4.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "filelock" },
+    { name = "fsspec" },
+    { name = "httpx" },
+    { name = "packaging" },
+    { name = "pyyaml" },
+    { name = "shellingham" },
+    { name = "tqdm" },
+    { name = "typer-slim" },
+    { name = "typing-extensions" },
+]
+wheels = [
+    { path = "huggingface_hub-1.4.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "idna"
+version = "3.11"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "idna-3.11-py3-none-any.whl" },
+]
+
+[[package]]
+name = "importlib-metadata"
+version = "8.7.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "zipp" },
+]
+wheels = [
+    { path = "importlib_metadata-8.7.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "iniconfig"
+version = "2.3.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "iniconfig-2.3.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "itsdangerous"
+version = "2.2.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "itsdangerous-2.2.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "jinja2"
+version = "3.1.6"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "markupsafe" },
+]
+wheels = [
+    { path = "jinja2-3.1.6-py3-none-any.whl" },
+]
+
+[[package]]
+name = "jiter"
+version = "0.13.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "jiter-0.13.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "jmespath"
+version = "1.0.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "jmespath-1.0.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "joblib"
+version = "1.5.3"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "joblib-1.5.3-py3-none-any.whl" },
+]
+
+[[package]]
+name = "jsonpatch"
+version = "1.33"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "jsonpatch-1.33-py3-none-any.whl" },
+]
+
+[[package]]
+name = "jsonschema"
+version = "4.26.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "attrs" },
+    { name = "jsonschema-specifications" },
+    { name = "referencing" },
+    { name = "rpds-py" },
+]
+wheels = [
+    { path = "jsonschema-4.26.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "jsonschema-specifications"
+version = "2025.9.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "referencing" },
+]
+wheels = [
+    { path = "jsonschema_specifications-2025.9.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "kiwisolver"
+version = "1.4.8"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "kiwisolver-1.4.8-py3-none-any.whl" },
+]
+
+[[package]]
+name = "langchain"
+version = "1.2.13"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "langgraph" },
+    { name = "pydantic" },
+]
+wheels = [
+    { path = "langchain-1.2.13-py3-none-any.whl" },
+]
+
+[[package]]
+name = "langchain-classic"
+version = "1.0.3"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "langchain-text-splitters" },
+    { name = "langsmith" },
+    { name = "pydantic" },
+    { name = "pyyaml" },
+    { name = "requests" },
+    { name = "sqlalchemy" },
+]
+wheels = [
+    { path = "langchain_classic-1.0.3-py3-none-any.whl" },
+]
+
+[[package]]
+name = "langchain-community"
+version = "0.4.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "aiohttp" },
+    { name = "dataclasses-json" },
+    { name = "httpx-sse" },
+    { name = "langchain-classic" },
+    { name = "langchain-core" },
+    { name = "langsmith" },
+    { name = "numpy" },
+    { name = "pydantic-settings" },
+    { name = "pyyaml" },
+    { name = "requests" },
+    { name = "sqlalchemy" },
+    { name = "tenacity" },
+]
+wheels = [
+    { path = "langchain_community-0.4.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "langchain-core"
+version = "1.2.21"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "jsonpatch" },
+    { name = "langsmith" },
+    { name = "packaging" },
+    { name = "pydantic" },
+    { name = "pyyaml" },
+    { name = "tenacity" },
+    { name = "typing-extensions" },
+    { name = "uuid-utils" },
+]
+wheels = [
+    { path = "langchain_core-1.2.21-py3-none-any.whl" },
+]
+
+[[package]]
+name = "langchain-mcp-adapters"
+version = "0.2.2"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "mcp" },
+    { name = "typing-extensions" },
+]
+wheels = [
+    { path = "langchain_mcp_adapters-0.2.2-py3-none-any.whl" },
+]
+
+[[package]]
+name = "langchain-text-splitters"
+version = "1.1.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "langchain-core" },
+]
+wheels = [
+    { path = "langchain_text_splitters-1.1.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "langgraph"
+version = "1.1.3"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "langgraph-checkpoint" },
+    { name = "langgraph-prebuilt" },
+    { name = "langgraph-sdk" },
+    { name = "pydantic" },
+    { name = "xxhash" },
+]
+wheels = [
+    { path = "langgraph-1.1.3-py3-none-any.whl" },
+]
+
+[[package]]
+name = "langgraph-checkpoint"
+version = "4.0.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "ormsgpack" },
+]
+wheels = [
+    { path = "langgraph_checkpoint-4.0.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "langgraph-prebuilt"
+version = "1.0.8"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "langgraph-checkpoint" },
+]
+wheels = [
+    { path = "langgraph_prebuilt-1.0.8-py3-none-any.whl" },
+]
+
+[[package]]
+name = "langgraph-sdk"
+version = "0.3.12"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "httpx" },
+    { name = "orjson" },
+]
+wheels = [
+    { path = "langgraph_sdk-0.3.12-py3-none-any.whl" },
+]
+
+[[package]]
+name = "langsmith"
+version = "0.4.11"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "httpx" },
+    { name = "orjson", marker = "platform_python_implementation != 'PyPy'" },
+    { name = "packaging" },
+    { name = "pydantic" },
+    { name = "requests" },
+    { name = "requests-toolbelt" },
+    { name = "zstandard" },
+]
+wheels = [
+    { path = "langsmith-0.4.11-py3-none-any.whl" },
+]
+
+[[package]]
+name = "litellm"
+version = "1.81.8"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "aiohttp" },
+    { name = "click" },
+    { name = "fastuuid" },
+    { name = "httpx" },
+    { name = "importlib-metadata" },
+    { name = "jinja2" },
+    { name = "jsonschema" },
+    { name = "openai" },
+    { name = "pydantic" },
+    { name = "python-dotenv" },
+    { name = "tiktoken" },
+    { name = "tokenizers" },
+]
+wheels = [
+    { path = "litellm-1.81.8-py3-none-any.whl" },
+]
+
+[[package]]
+name = "mako"
+version = "1.3.10"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "markupsafe" },
+]
+wheels = [
+    { path = "mako-1.3.10-py3-none-any.whl" },
+]
+
+[[package]]
+name = "markupsafe"
+version = "3.0.3"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "markupsafe-3.0.3-py3-none-any.whl" },
+]
+
+[[package]]
+name = "marshmallow"
+version = "3.26.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "packaging" },
+]
+wheels = [
+    { path = "marshmallow-3.26.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "matplotlib"
+version = "3.10.3"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "contourpy" },
+    { name = "cycler" },
+    { name = "fonttools" },
+    { name = "kiwisolver" },
+    { name = "numpy" },
+    { name = "packaging" },
+    { name = "pillow" },
+    { name = "pyparsing" },
+    { name = "python-dateutil" },
+]
+wheels = [
+    { path = "matplotlib-3.10.3-py3-none-any.whl" },
+]
+
+[[package]]
+name = "mcp"
+version = "1.26.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "anyio" },
+    { name = "httpx" },
+    { name = "httpx-sse" },
+    { name = "jsonschema" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "pyjwt", extra = ["crypto"] },
+    { name = "python-multipart" },
+    { name = "pywin32", marker = "sys_platform == 'win32'" },
+    { name = "sse-starlette" },
+    { name = "starlette" },
+    { name = "typing-extensions" },
+    { name = "typing-inspection" },
+    { name = "uvicorn", marker = "sys_platform != 'emscripten'" },
+]
+wheels = [
+    { path = "mcp-1.26.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "mlflow"
+version = "3.10.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "alembic" },
+    { name = "cryptography" },
+    { name = "docker" },
+    { name = "flask" },
+    { name = "flask-cors" },
+    { name = "graphene" },
+    { name = "gunicorn", marker = "sys_platform != 'win32'" },
+    { name = "huey" },
+    { name = "matplotlib" },
+    { name = "mlflow-skinny" },
+    { name = "mlflow-tracing" },
+    { name = "numpy" },
+    { name = "pandas" },
+    { name = "pyarrow" },
+    { name = "scikit-learn" },
+    { name = "scipy" },
+    { name = "skops" },
+    { name = "sqlalchemy" },
+    { name = "waitress", marker = "sys_platform == 'win32'" },
+]
+wheels = [
+    { path = "mlflow-3.10.1-py3-none-any.whl" },
+]
+
+[package.optional-dependencies]
+genai = [
+    { name = "aiohttp" },
+    { name = "boto3" },
+    { name = "fastapi" },
+    { name = "gepa" },
+    { name = "litellm" },
+    { name = "slowapi" },
+    { name = "tiktoken" },
+    { name = "uvicorn", extra = ["standard"] },
+    { name = "watchfiles" },
+]
+
+[[package]]
+name = "mlflow-skinny"
+version = "3.10.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "cachetools" },
+    { name = "click" },
+    { name = "cloudpickle" },
+    { name = "databricks-sdk" },
+    { name = "fastapi" },
+    { name = "gitpython" },
+    { name = "importlib-metadata" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-proto" },
+    { name = "opentelemetry-sdk" },
+    { name = "packaging" },
+    { name = "protobuf" },
+    { name = "pydantic" },
+    { name = "python-dotenv" },
+    { name = "pyyaml" },
+    { name = "requests" },
+    { name = "sqlparse" },
+    { name = "typing-extensions" },
+    { name = "uvicorn" },
+]
+wheels = [
+    { path = "mlflow_skinny-3.10.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "mlflow-tracing"
+version = "3.10.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "cachetools" },
+    { name = "databricks-sdk" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-proto" },
+    { name = "opentelemetry-sdk" },
+    { name = "packaging" },
+    { name = "protobuf" },
+    { name = "pydantic" },
+]
+wheels = [
+    { path = "mlflow_tracing-3.10.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "multidict"
+version = "6.7.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "multidict-6.7.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "mypy-extensions"
+version = "1.1.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "mypy_extensions-1.1.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "nest-asyncio"
+version = "1.6.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "nest_asyncio-1.6.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "numpy"
+version = "2.4.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "numpy-2.4.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "openai"
+version = "2.29.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "anyio" },
+    { name = "distro" },
+    { name = "httpx" },
+    { name = "jiter" },
+    { name = "pydantic" },
+    { name = "sniffio" },
+    { name = "tqdm" },
+    { name = "typing-extensions" },
+]
+wheels = [
+    { path = "openai-2.29.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "openai-agents"
+version = "0.13.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "griffe" },
+    { name = "mcp" },
+    { name = "openai" },
+    { name = "pydantic" },
+    { name = "requests" },
+    { name = "types-requests" },
+    { name = "typing-extensions" },
+]
+wheels = [
+    { path = "openai_agents-0.13.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "opentelemetry-api"
+version = "1.34.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "importlib-metadata" },
+    { name = "typing-extensions" },
+]
+wheels = [
+    { path = "opentelemetry_api-1.34.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "opentelemetry-proto"
+version = "1.40.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "protobuf" },
+]
+wheels = [
+    { path = "opentelemetry_proto-1.40.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "opentelemetry-sdk"
+version = "1.34.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-semantic-conventions" },
+    { name = "typing-extensions" },
+]
+wheels = [
+    { path = "opentelemetry_sdk-1.34.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "opentelemetry-semantic-conventions"
+version = "0.55b1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "opentelemetry-api" },
+    { name = "typing-extensions" },
+]
+wheels = [
+    { path = "opentelemetry_semantic_conventions-0.55b1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "orjson"
+version = "3.11.5"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "orjson-3.11.5-py3-none-any.whl" },
+]
+
+[[package]]
+name = "ormsgpack"
+version = "1.12.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "ormsgpack-1.12.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "packaging"
+version = "26.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "packaging-26.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "pandas"
+version = "2.3.3"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "numpy" },
+    { name = "python-dateutil" },
+    { name = "pytz" },
+    { name = "tzdata" },
+]
+wheels = [
+    { path = "pandas-2.3.3-py3-none-any.whl" },
+]
+
+[[package]]
+name = "pillow"
+version = "11.3.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "pillow-11.3.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "pluggy"
+version = "1.6.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "pluggy-1.6.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "prettytable"
+version = "3.17.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "wcwidth" },
+]
+wheels = [
+    { path = "prettytable-3.17.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "propcache"
+version = "0.4.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "propcache-0.4.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "protobuf"
+version = "6.33.6"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "protobuf-6.33.6-py3-none-any.whl" },
+]
+
+[[package]]
+name = "psycopg"
+version = "3.2.9"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "psycopg-3.2.9-py3-none-any.whl" },
+]
+
+[package.optional-dependencies]
+binary = [
+    { name = "psycopg-binary" },
+]
+
+[[package]]
+name = "psycopg-binary"
+version = "3.2.9"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "psycopg_binary-3.2.9-py3-none-any.whl" },
+]
+
+[[package]]
+name = "py4j"
+version = "0.10.9.7"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "py4j-0.10.9.7-py3-none-any.whl" },
+]
+
+[[package]]
+name = "pyarrow"
+version = "22.0.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "pyarrow-22.0.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "pyasn1"
+version = "0.6.3"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "pyasn1-0.6.3-py3-none-any.whl" },
+]
+
+[[package]]
+name = "pyasn1-modules"
+version = "0.4.2"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "pyasn1" },
+]
+wheels = [
+    { path = "pyasn1_modules-0.4.2-py3-none-any.whl" },
+]
+
+[[package]]
+name = "pycparser"
+version = "3.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "pycparser-3.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "pydantic"
+version = "2.12.5"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "annotated-types" },
+    { name = "pydantic-core" },
+    { name = "typing-extensions" },
+    { name = "typing-inspection" },
+]
+wheels = [
+    { path = "pydantic-2.12.5-py3-none-any.whl" },
+]
+
+[[package]]
+name = "pydantic-core"
+version = "2.41.5"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+wheels = [
+    { path = "pydantic_core-2.41.5-py3-none-any.whl" },
+]
+
+[[package]]
+name = "pydantic-settings"
+version = "2.13.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "python-dotenv" },
+    { name = "typing-inspection" },
+]
+wheels = [
+    { path = "pydantic_settings-2.13.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "pygments"
+version = "2.19.2"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "pygments-2.19.2-py3-none-any.whl" },
+]
+
+[[package]]
+name = "pyjwt"
+version = "2.11.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "pyjwt-2.11.0-py3-none-any.whl" },
+]
+
+[package.optional-dependencies]
+crypto = [
+    { name = "cryptography" },
+]
+
+[[package]]
+name = "pyparsing"
+version = "3.2.3"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "pyparsing-3.2.3-py3-none-any.whl" },
+]
+
+[[package]]
+name = "pytest"
+version = "9.0.2"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "iniconfig" },
+    { name = "packaging" },
+    { name = "pluggy" },
+    { name = "pygments" },
+]
+wheels = [
+    { path = "pytest-9.0.2-py3-none-any.whl" },
+]
+
+[[package]]
+name = "pytest-asyncio"
+version = "1.3.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "pytest" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+]
+wheels = [
+    { path = "pytest_asyncio-1.3.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "pytest-mock"
+version = "3.14.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "pytest" },
+]
+wheels = [
+    { path = "pytest_mock-3.14.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "python-dateutil"
+version = "2.9.0.post0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "six" },
+]
+wheels = [
+    { path = "python_dateutil-2.9.0.post0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "python-dotenv"
+version = "1.2.2"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "python_dotenv-1.2.2-py3-none-any.whl" },
+]
+
+[[package]]
+name = "python-multipart"
+version = "0.0.22"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "python_multipart-0.0.22-py3-none-any.whl" },
+]
+
+[[package]]
+name = "pytz"
+version = "2025.2"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "pytz-2025.2-py3-none-any.whl" },
+]
+
+[[package]]
+name = "pywin32"
+version = "310"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "pywin32-310-py3-none-any.whl" },
+]
+
+[[package]]
+name = "pyyaml"
+version = "6.0.3"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "pyyaml-6.0.3-py3-none-any.whl" },
+]
+
+[[package]]
+name = "referencing"
+version = "0.37.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "attrs" },
+    { name = "rpds-py" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+]
+wheels = [
+    { path = "referencing-0.37.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "regex"
+version = "2026.1.15"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "regex-2026.1.15-py3-none-any.whl" },
+]
+
+[[package]]
+name = "requests"
+version = "2.32.5"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "certifi" },
+    { name = "charset-normalizer" },
+    { name = "idna" },
+    { name = "urllib3" },
+]
+wheels = [
+    { path = "requests-2.32.5-py3-none-any.whl" },
+]
+
+[[package]]
+name = "requests-toolbelt"
+version = "1.0.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "requests_toolbelt-1.0.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "rpds-py"
+version = "0.30.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "rpds_py-0.30.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "s3transfer"
+version = "0.13.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "botocore" },
+]
+wheels = [
+    { path = "s3transfer-0.13.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "scikit-learn"
+version = "1.7.2"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "joblib" },
+    { name = "numpy" },
+    { name = "scipy" },
+    { name = "threadpoolctl" },
+]
+wheels = [
+    { path = "scikit_learn-1.7.2-py3-none-any.whl" },
+]
+
+[[package]]
+name = "scipy"
+version = "1.16.2"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "numpy" },
+]
+wheels = [
+    { path = "scipy-1.16.2-py3-none-any.whl" },
+]
+
+[[package]]
+name = "setuptools"
+version = "82.0.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "setuptools-82.0.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "shellingham"
+version = "1.5.4"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "shellingham-1.5.4-py3-none-any.whl" },
+]
+
+[[package]]
+name = "six"
+version = "1.17.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "six-1.17.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "skops"
+version = "0.13.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "numpy" },
+    { name = "packaging" },
+    { name = "prettytable" },
+    { name = "scikit-learn" },
+    { name = "scipy" },
+]
+wheels = [
+    { path = "skops-0.13.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "slowapi"
+version = "0.1.9"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "slowapi-0.1.9-py3-none-any.whl" },
+]
+
+[[package]]
+name = "smmap"
+version = "5.0.2"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "smmap-5.0.2-py3-none-any.whl" },
+]
+
+[[package]]
+name = "sniffio"
+version = "1.3.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "sniffio-1.3.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "sqlalchemy"
+version = "2.0.43"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "greenlet", marker = "(python_full_version < '3.14' and platform_machine == 'AMD64') or (python_full_version < '3.14' and platform_machine == 'WIN32') or (python_full_version < '3.14' and platform_machine == 'aarch64') or (python_full_version < '3.14' and platform_machine == 'amd64') or (python_full_version < '3.14' and platform_machine == 'ppc64le') or (python_full_version < '3.14' and platform_machine == 'win32') or (python_full_version < '3.14' and platform_machine == 'x86_64')" },
+    { name = "typing-extensions" },
+]
+wheels = [
+    { path = "sqlalchemy-2.0.43-py3-none-any.whl" },
+]
+
+[package.optional-dependencies]
+asyncio = [
+    { name = "greenlet" },
+]
+
+[[package]]
+name = "sqlparse"
+version = "0.5.3"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "sqlparse-0.5.3-py3-none-any.whl" },
+]
+
+[[package]]
+name = "sse-starlette"
+version = "3.2.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "anyio" },
+    { name = "starlette" },
+]
+wheels = [
+    { path = "sse_starlette-3.2.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "starlette"
+version = "0.52.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "anyio" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+]
+wheels = [
+    { path = "starlette-0.52.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "tabulate"
+version = "0.10.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "tabulate-0.10.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "tenacity"
+version = "9.1.2"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "tenacity-9.1.2-py3-none-any.whl" },
+]
+
+[[package]]
+name = "threadpoolctl"
+version = "3.6.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "threadpoolctl-3.6.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "tiktoken"
+version = "0.9.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "regex" },
+    { name = "requests" },
+]
+wheels = [
+    { path = "tiktoken-0.9.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "tokenizers"
+version = "0.22.2"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "huggingface-hub" },
+]
+wheels = [
+    { path = "tokenizers-0.22.2-py3-none-any.whl" },
+]
+
+[[package]]
+name = "tqdm"
+version = "4.67.3"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+]
+wheels = [
+    { path = "tqdm-4.67.3-py3-none-any.whl" },
+]
+
+[[package]]
+name = "ty"
+version = "0.0.24"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "ty-0.0.24-py3-none-any.whl" },
+]
+
+[[package]]
+name = "typer-slim"
+version = "0.21.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "click" },
+    { name = "typing-extensions" },
+]
+wheels = [
+    { path = "typer_slim-0.21.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "types-requests"
+version = "2.32.4.20260324"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "urllib3" },
+]
+wheels = [
+    { path = "types_requests-2.32.4.20260324-py3-none-any.whl" },
+]
+
+[[package]]
+name = "typing-extensions"
+version = "4.15.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "typing_extensions-4.15.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "typing-inspect"
+version = "0.9.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "mypy-extensions" },
+    { name = "typing-extensions" },
+]
+wheels = [
+    { path = "typing_inspect-0.9.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "typing-inspection"
+version = "0.4.2"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+wheels = [
+    { path = "typing_inspection-0.4.2-py3-none-any.whl" },
+]
+
+[[package]]
+name = "tzdata"
+version = "2024.2"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "tzdata-2024.2-py3-none-any.whl" },
+]
+
+[[package]]
+name = "unitycatalog-ai"
+version = "0.3.2"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "cloudpickle" },
+    { name = "nest-asyncio" },
+    { name = "pydantic" },
+    { name = "typing-extensions" },
+    { name = "unitycatalog-client" },
+]
+wheels = [
+    { path = "unitycatalog_ai-0.3.2-py3-none-any.whl" },
+]
+
+[package.optional-dependencies]
+databricks = [
+    { name = "databricks-connect" },
+    { name = "databricks-sdk" },
+    { name = "pandas" },
+]
+
+[[package]]
+name = "unitycatalog-client"
+version = "0.4.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "aiohttp" },
+    { name = "aiohttp-retry" },
+    { name = "pydantic" },
+    { name = "python-dateutil" },
+    { name = "typing-extensions" },
+    { name = "urllib3" },
+]
+wheels = [
+    { path = "unitycatalog_client-0.4.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "unitycatalog-langchain"
+version = "0.3.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "langchain" },
+    { name = "langchain-community" },
+    { name = "unitycatalog-ai" },
+]
+wheels = [
+    { path = "unitycatalog_langchain-0.3.0-py3-none-any.whl" },
+]
+
+[package.optional-dependencies]
+databricks = [
+    { name = "unitycatalog-ai", extra = ["databricks"] },
+]
+
+[[package]]
+name = "unitycatalog-openai"
+version = "0.2.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "openai" },
+    { name = "pydantic" },
+    { name = "unitycatalog-ai" },
+]
+wheels = [
+    { path = "unitycatalog_openai-0.2.0-py3-none-any.whl" },
+]
+
+[package.optional-dependencies]
+databricks = [
+    { name = "unitycatalog-ai", extra = ["databricks"] },
+]
+
+[[package]]
+name = "uphora"
+source = { editable = "." }
+dependencies = [
+    { name = "databricks-langchain" },
+    { name = "databricks-sdk" },
+    { name = "faker" },
+    { name = "fastapi" },
+    { name = "langgraph" },
+    { name = "mlflow", extra = ["genai"] },
+    { name = "psycopg", extra = ["binary"] },
+    { name = "pydantic-settings" },
+    { name = "sqlalchemy", extra = ["asyncio"] },
+    { name = "uvicorn" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "httpx" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-mock" },
+    { name = "ty" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "databricks-langchain", specifier = ">=0.4.0" },
+    { name = "databricks-sdk", specifier = ">=0.81.0" },
+    { name = "faker", specifier = ">=24.0.0" },
+    { name = "fastapi", specifier = ">=0.119.0" },
+    { name = "langgraph", specifier = ">=0.2.0" },
+    { name = "mlflow", extras = ["genai"], specifier = ">=3.0" },
+    { name = "psycopg", extras = ["binary"], specifier = ">=3.0" },
+    { name = "pydantic-settings", specifier = ">=2.0" },
+    { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0" },
+    { name = "uvicorn", specifier = ">=0.37.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.23" },
+    { name = "pytest-mock", specifier = ">=3.12" },
+    { name = "ty", specifier = ">=0.0.12" },
+]
+
+[[package]]
+name = "urllib3"
+version = "2.6.3"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "urllib3-2.6.3-py3-none-any.whl" },
+]
+
+[[package]]
+name = "uuid-utils"
+version = "0.12.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "uuid_utils-0.12.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "uvicorn"
+version = "0.42.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "click" },
+    { name = "h11" },
+]
+wheels = [
+    { path = "uvicorn-0.42.0-py3-none-any.whl" },
+]
+
+[package.optional-dependencies]
+standard = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "httptools" },
+    { name = "python-dotenv" },
+    { name = "pyyaml" },
+    { name = "uvloop", marker = "platform_python_implementation != 'PyPy' and sys_platform != 'cygwin' and sys_platform != 'win32'" },
+    { name = "watchfiles" },
+    { name = "websockets" },
+]
+
+[[package]]
+name = "uvloop"
+version = "0.22.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "uvloop-0.22.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "waitress"
+version = "3.0.2"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "waitress-3.0.2-py3-none-any.whl" },
+]
+
+[[package]]
+name = "watchfiles"
+version = "1.1.1"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "anyio" },
+]
+wheels = [
+    { path = "watchfiles-1.1.1-py3-none-any.whl" },
+]
+
+[[package]]
+name = "wcwidth"
+version = "0.2.13"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "wcwidth-0.2.13-py3-none-any.whl" },
+]
+
+[[package]]
+name = "websockets"
+version = "16.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "websockets-16.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "werkzeug"
+version = "3.1.5"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "markupsafe" },
+]
+wheels = [
+    { path = "werkzeug-3.1.5-py3-none-any.whl" },
+]
+
+[[package]]
+name = "xxhash"
+version = "3.6.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "xxhash-3.6.0-cp312-cp312-macosx_11_0_arm64.whl" },
+]
+
+[[package]]
+name = "yarl"
+version = "1.22.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "idna" },
+    { name = "multidict" },
+    { name = "propcache" },
+]
+wheels = [
+    { path = "yarl-1.22.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "zipp"
+version = "3.23.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+wheels = [
+    { path = "zipp-3.23.0-py3-none-any.whl" },
+]
+
+[[package]]
+name = "zstandard"
+version = "0.23.0"
+source = { registry = "../../../../../../../../tmp/local-pypi-flat" }
+dependencies = [
+    { name = "cffi", marker = "platform_python_implementation == 'PyPy'" },
+]
+wheels = [
+    { path = "zstandard-0.23.0-py3-none-any.whl" },
+]

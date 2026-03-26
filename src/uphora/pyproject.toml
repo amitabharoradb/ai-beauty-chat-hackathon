@@ -1,0 +1,54 @@
+[project]
+name = "uphora"
+dynamic = ["version"]
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.119.0",
+    "pydantic-settings>=2.0",
+    "uvicorn>=0.37.0",
+    "databricks-sdk>=0.81.0",
+    "mlflow[genai]>=3.0",
+    "databricks-langchain>=0.4.0",
+    "langgraph>=0.2.0",
+    "psycopg[binary]>=3.0",
+    "sqlalchemy[asyncio]>=2.0",
+    "faker>=24.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "ty>=0.0.12",
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "pytest-mock>=3.12",
+    "httpx>=0.27",
+]
+
+[tool.apx.metadata]
+app-name = "uphora"
+app-slug = "uphora"
+app-entrypoint = "uphora.backend.app:app"
+api-prefix = "/api"
+metadata-path = "src/uphora/_metadata.py"
+
+[build-system]
+requires = ["hatchling", "uv-dynamic-versioning>=0.7.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.uv-dynamic-versioning]
+vcs = "git"
+fallback-version = "0.0.0"
+
+[tool.hatch.build.hooks.version]
+path = "src/uphora/_version.py"
+template = '''
+version = "{version}"
+'''
+
+[tool.hatch.build]
+artifacts = ["src/uphora/__dist__", "src/uphora/_metadata.py"]

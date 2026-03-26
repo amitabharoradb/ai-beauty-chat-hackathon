@@ -1,0 +1,22 @@
+bundle:
+  name: uphora
+
+sync:
+  include:
+    - .build
+
+artifacts:
+  default:
+    build: apx build
+
+resources:
+  apps:
+    uphora-app:
+      name: "uphora"
+      description: "uphora created with apx"
+      source_code_path: ./.build
+
+targets:
+  dev:
+    mode: development
+    default: true
