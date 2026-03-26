@@ -65,7 +65,7 @@ All-in-One Hybrid — the bot adapts per message:
 | Agent deployment | Databricks Apps (apx — React + FastAPI) |
 | Memory store | Databricks Lakebase Autoscaling (PostgreSQL) |
 | Product/customer data | Unity Catalog (Delta tables) |
-| LLM | Claude Sonnet 4.6 via Databricks Foundation Model API (`databricks-claude-sonnet-4-6`) — OpenAI-compatible, uses `DATABRICKS_TOKEN`, no separate API key needed |
+| LLM | Claude Sonnet 4.6 via Databricks Foundation Model API — `w.serving_endpoints.query(name="databricks-claude-sonnet-4-6", stream=True)` using `databricks-sdk`, no extra package needed |
 | Fake data generation | Spark + Faker |
 
 ---

@@ -6,7 +6,7 @@
 
 **Architecture:** LangGraph agent with 5 nodes (memory_loader, intent_router, advisor/shopper/coach, memory_writer) backed by Lakebase Autoscaling (PostgreSQL) for long-term memory and Unity Catalog Delta tables for product/customer data. apx (React + FastAPI) serves the warm-luxury chat UI with customer dropdown and SSE streaming. The graph builds a prompt+context state; FastAPI streams Claude's response directly for real-time token delivery.
 
-**Tech Stack:** Python 3.11+, LangGraph, Databricks Foundation Model API (`databricks-claude-sonnet-4-6`, OpenAI-compatible), FastAPI, apx (React + Vite), psycopg3, SQLAlchemy async, Databricks SDK ≥0.81, Spark + Faker, Unity Catalog, Lakebase Autoscaling
+**Tech Stack:** Python 3.11+, LangGraph, Databricks Foundation Model API (`databricks-claude-sonnet-4-6` via `databricks-sdk` `w.serving_endpoints.query`), FastAPI, apx (React + Vite), psycopg3, SQLAlchemy async, Databricks SDK ≥0.81, Spark + Faker, Unity Catalog, Lakebase Autoscaling
 
 ---
 
@@ -88,7 +88,6 @@ In `src/uphora/pyproject.toml` (or root `pyproject.toml`), add to `[project.depe
 ```toml
 [project]
 dependencies = [
-  "openai>=1.50.0",
   "langgraph>=0.2.0",
   "databricks-sdk>=0.81.0",
   "psycopg[binary]>=3.0",
@@ -1612,7 +1611,7 @@ def test_list_customers_returns_10(client):
 
 def test_chat_returns_sse_stream(client, sample_customer_memory, sample_products):
     with patch("src.uphora.backend.router.GRAPH") as mock_graph, \
-         patch("src.uphora.backend.router.openai_client") as mock_client, \
+         patch("src.uphora.backend.router.w") as mock_w, \
          patch("src.uphora.backend.router.save_memory", AsyncMock()):
 
         # Mock graph.ainvoke
@@ -1625,14 +1624,14 @@ def test_chat_returns_sse_stream(client, sample_customer_memory, sample_products
             "session_id": "test-session",
         })
 
-        # Mock OpenAI streaming chunks
+        # Mock Databricks SDK streaming chunks
         def make_chunk(text):
             chunk = MagicMock()
             chunk.choices = [MagicMock()]
             chunk.choices[0].delta.content = text
             return chunk
 
-        mock_client.chat.completions.create.return_value = iter([
+        mock_w.serving_endpoints.query.return_value = iter([
             make_chunk("Hello "),
             make_chunk("there!"),
         ])
@@ -1661,7 +1660,7 @@ Expected: ImportError or 404
 # src/uphora/backend/router.py
 import json
 import os
-from openai import OpenAI
+from databricks.sdk import WorkspaceClient
 from fastapi import Request
 from fastapi.responses import StreamingResponse
 from .core import create_router
@@ -1669,15 +1668,11 @@ from .models import CustomerOut, ChatRequest
 from .agent.graph import build_graph
 from .agent.memory import save_memory
 from .db import db_manager
-import psycopg
 
 GRAPH = build_graph()
 
-# Databricks Foundation Model API — OpenAI-compatible, no separate API key needed
-openai_client = OpenAI(
-    api_key=os.getenv("DATABRICKS_TOKEN"),
-    base_url=f"{os.getenv('DATABRICKS_HOST', '').rstrip('/')}/serving-endpoints",
-)
+# Databricks Foundation Model API — uses DATABRICKS_HOST + DATABRICKS_TOKEN from env (auto-set in Apps)
+w = WorkspaceClient()
 
 router = create_router()
 
@@ -1723,22 +1718,22 @@ async def chat(request: ChatRequest) -> StreamingResponse:
         ]
         final_state = await GRAPH.ainvoke(state)
 
-        # 2. Stream Claude response token by token via Databricks Foundation Model API
+        # 2. Stream Claude response via Databricks Foundation Model API
         full_response = ""
-        stream = openai_client.chat.completions.create(
-            model="databricks-claude-sonnet-4-6",
+        for chunk in w.serving_endpoints.query(
+            name="databricks-claude-sonnet-4-6",
             messages=[
                 {"role": "system", "content": final_state["system_prompt"]},
                 *final_state["claude_messages"],
             ],
             max_tokens=1024,
             stream=True,
-        )
-        for chunk in stream:
-            text = chunk.choices[0].delta.content or ""
-            if text:
-                full_response += text
-                yield f"data: {json.dumps({'text': text})}\n\n"
+        ):
+            if chunk.choices:
+                text = chunk.choices[0].delta.content or ""
+                if text:
+                    full_response += text
+                    yield f"data: {json.dumps({'text': text})}\n\n"
 
         # 3. Yield product cards
         products = final_state.get("products_found", [])
