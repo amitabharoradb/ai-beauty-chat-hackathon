@@ -15,12 +15,13 @@
 Set these before running anything:
 
 ```bash
-UC_CATALOG=main                  # Unity Catalog catalog name
-UC_SCHEMA=uphora                 # Unity Catalog schema name
+UC_CATALOG=amitabh_arora_catalog
+UC_SCHEMA=uphora
 LAKEBASE_PROJECT_ID=uphora-memory
-DATABRICKS_HOST=https://<workspace>.azuredatabricks.net
-DATABRICKS_TOKEN=dapi...         # auto-set inside Databricks Apps
-DATABRICKS_WAREHOUSE_ID=<sql-warehouse-id>  # find in Databricks SQL > Warehouses
+DATABRICKS_WAREHOUSE_ID=c68d2b4e0786602a   # Serverless Starter Warehouse
+# Auth: use Databricks CLI profile fevm-classic-stable-69enm7
+# Set via: export DATABRICKS_CONFIG_PROFILE=fevm-classic-stable-69enm7
+# Inside Databricks Apps, DATABRICKS_HOST and DATABRICKS_TOKEN are injected automatically.
 ```
 
 ---
@@ -232,10 +233,9 @@ fake = Faker()
 Faker.seed(42)
 random.seed(42)
 
-UC_CATALOG = os.getenv("UC_CATALOG", "main")
+UC_CATALOG = os.getenv("UC_CATALOG", "amitabh_arora_catalog")  # catalog already exists
 UC_SCHEMA = os.getenv("UC_SCHEMA", "uphora")
 
-spark.sql(f"CREATE CATALOG IF NOT EXISTS {UC_CATALOG}")
 spark.sql(f"CREATE SCHEMA IF NOT EXISTS {UC_CATALOG}.{UC_SCHEMA}")
 
 # COMMAND ----------
@@ -347,10 +347,10 @@ databricks jobs create --json '{
 databricks sql execute \
   --warehouse-id <warehouse-id> \
   --statement "SELECT table_name, COUNT(*) as cnt FROM (
-    SELECT 'customers' as table_name, COUNT(*) as cnt FROM main.uphora.customers
-    UNION ALL SELECT 'products', COUNT(*) FROM main.uphora.products
-    UNION ALL SELECT 'categories', COUNT(*) FROM main.uphora.categories
-    UNION ALL SELECT 'customer_products', COUNT(*) FROM main.uphora.customer_products
+    SELECT 'customers' as table_name, COUNT(*) as cnt FROM amitabh_arora_catalog.uphora.customers
+    UNION ALL SELECT 'products', COUNT(*) FROM amitabh_arora_catalog.uphora.products
+    UNION ALL SELECT 'categories', COUNT(*) FROM amitabh_arora_catalog.uphora.categories
+    UNION ALL SELECT 'customer_products', COUNT(*) FROM amitabh_arora_catalog.uphora.customer_products
   ) GROUP BY table_name"
 ```
 
@@ -750,19 +750,19 @@ Expected: ImportError
 # src/uphora/backend/agent/tools.py
 import os
 from databricks import sql as dbsql
+from databricks.sdk import WorkspaceClient
 
-UC_CATALOG = os.getenv("UC_CATALOG", "main")
+UC_CATALOG = os.getenv("UC_CATALOG", "amitabh_arora_catalog")
 UC_SCHEMA = os.getenv("UC_SCHEMA", "uphora")
-DATABRICKS_HOST = os.getenv("DATABRICKS_HOST", "")
-DATABRICKS_TOKEN = os.getenv("DATABRICKS_TOKEN", "")
-WAREHOUSE_ID = os.getenv("DATABRICKS_WAREHOUSE_ID", "")
+WAREHOUSE_ID = os.getenv("DATABRICKS_WAREHOUSE_ID", "c68d2b4e0786602a")
 
 def _query_products(where_clause: str = "1=1", limit: int = 10) -> list[dict]:
-    """Query products from Unity Catalog."""
+    """Query products from Unity Catalog via Databricks SQL connector (uses env/profile auth)."""
+    w = WorkspaceClient()
     with dbsql.connect(
-        server_hostname=DATABRICKS_HOST.replace("https://", ""),
+        server_hostname=w.config.host.replace("https://", ""),
         http_path=f"/sql/1.0/warehouses/{WAREHOUSE_ID}",
-        access_token=DATABRICKS_TOKEN,
+        access_token=w.config.token,
     ) as conn:
         with conn.cursor() as cur:
             cur.execute(f"""
@@ -1671,21 +1671,19 @@ from .db import db_manager
 
 GRAPH = build_graph()
 
-# Databricks Foundation Model API — uses DATABRICKS_HOST + DATABRICKS_TOKEN from env (auto-set in Apps)
+# Uses DATABRICKS_CONFIG_PROFILE env var locally; auto-configured inside Databricks Apps
 w = WorkspaceClient()
 
 router = create_router()
 
 def _fetch_demo_customers() -> list[dict]:
     """Fetch 10 demo customers from Unity Catalog via Databricks SQL."""
-    import os
-    from databricks import sql as dbsql
-    UC_CATALOG = os.getenv("UC_CATALOG", "main")
+    UC_CATALOG = os.getenv("UC_CATALOG", "amitabh_arora_catalog")
     UC_SCHEMA = os.getenv("UC_SCHEMA", "uphora")
     with dbsql.connect(
-        server_hostname=os.getenv("DATABRICKS_HOST", "").replace("https://", ""),
-        http_path=f"/sql/1.0/warehouses/{os.getenv('DATABRICKS_WAREHOUSE_ID', '')}",
-        access_token=os.getenv("DATABRICKS_TOKEN", ""),
+        server_hostname=w.config.host.replace("https://", ""),
+        http_path=f"/sql/1.0/warehouses/{os.getenv('DATABRICKS_WAREHOUSE_ID', 'c68d2b4e0786602a')}",
+        access_token=w.config.token,
     ) as conn:
         with conn.cursor() as cur:
             cur.execute(f"""
@@ -2378,13 +2376,13 @@ command:
 
 env:
   - name: UC_CATALOG
-    value: main
+    value: amitabh_arora_catalog
   - name: UC_SCHEMA
     value: uphora
   - name: LAKEBASE_PROJECT_ID
     value: uphora-memory
   - name: DATABRICKS_WAREHOUSE_ID
-    value: <your-warehouse-id>
+    value: c68d2b4e0786602a
 # Note: DATABRICKS_TOKEN and DATABRICKS_HOST are injected automatically by Databricks Apps.
 # No ANTHROPIC_API_KEY needed — Claude is accessed via Databricks Foundation Model API.
 ```

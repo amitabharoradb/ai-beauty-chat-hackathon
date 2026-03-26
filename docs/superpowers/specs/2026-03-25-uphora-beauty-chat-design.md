@@ -64,7 +64,7 @@ All-in-One Hybrid — the bot adapts per message:
 | Agent framework | LangGraph (Python) |
 | Agent deployment | Databricks Apps (apx — React + FastAPI) |
 | Memory store | Databricks Lakebase Autoscaling (PostgreSQL) |
-| Product/customer data | Unity Catalog (Delta tables) |
+| Product/customer data | Unity Catalog — catalog `amitabh_arora_catalog`, schema `uphora` |
 | LLM | Claude Sonnet 4.6 via Databricks Foundation Model API — `w.serving_endpoints.query(name="databricks-claude-sonnet-4-6", stream=True)` using `databricks-sdk`, no extra package needed |
 | Fake data generation | Spark + Faker |
 
