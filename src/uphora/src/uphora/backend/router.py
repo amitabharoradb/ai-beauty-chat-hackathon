@@ -46,55 +46,27 @@ def list_customers():
 
 @router.post("/chat", operation_id="chat")
 async def chat(request: ChatRequest):
-    """Returns JSON with the agent response — no streaming to avoid proxy buffering."""
+    """Minimal: call Databricks SDK serving endpoint directly, return JSON."""
     loop = asyncio.get_running_loop()
 
-    def run_agent():
+    def call_llm():
         try:
-            from langchain_core.messages import HumanMessage, AIMessage
-            from .agent.memory import load_memory_sync, load_session_summaries_sync
-            from .agent.graph import build_graph
-            from databricks_langchain import ChatDatabricks
-
-            memory = load_memory_sync(request.customer_id)
-            summaries = load_session_summaries_sync(request.customer_id)
-            if summaries:
-                memory["session_summaries"] = summaries
-
-            history_msgs = [
-                HumanMessage(content=m.content) if m.role == "user" else AIMessage(content=m.content)
-                for m in request.history
-            ]
-            state = {
-                "customer_id": request.customer_id,
-                "messages": history_msgs + [HumanMessage(content=request.message)],
-                "intent": None,
-                "memory": memory,
-                "products_found": [],
-            }
-
-            llm = ChatDatabricks(endpoint="databricks-claude-sonnet-4-6", max_tokens=1024)
-            graph = build_graph(llm)
-            result = graph.invoke(state)
-
-            messages_out = result.get("messages", [])
-            products = result.get("products_found", [])
-            text = ""
-            for msg in reversed(messages_out):
-                if hasattr(msg, "content") and msg.content and getattr(msg, "type", "") in ("ai", "AIMessage"):
-                    text = msg.content
-                    break
-            if not text:
-                for msg in reversed(messages_out):
-                    c = getattr(msg, "content", "")
-                    if c and c != request.message:
-                        text = c
-                        break
-
-            return {"text": text, "products": products[:3] if products else []}
+            from databricks.sdk import WorkspaceClient
+            from databricks.sdk.service.serving import ChatMessage, ChatMessageRole
+            w = WorkspaceClient()
+            resp = w.serving_endpoints.query(
+                name="databricks-claude-sonnet-4-6",
+                messages=[
+                    ChatMessage(role=ChatMessageRole.SYSTEM, content="You are Ava, Uphora's beauty advisor. Give helpful, warm skincare advice."),
+                    ChatMessage(role=ChatMessageRole.USER, content=request.message),
+                ],
+                max_tokens=512,
+            )
+            text = resp.choices[0].message.content if resp.choices else ""
+            return {"text": text, "products": []}
         except Exception as e:
             import traceback
             return {"text": "", "error": traceback.format_exc()}
 
-    result = await loop.run_in_executor(_executor, run_agent)
+    result = await loop.run_in_executor(_executor, call_llm)
     return result
