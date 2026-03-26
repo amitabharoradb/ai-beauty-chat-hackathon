@@ -1,0 +1,22 @@
+command:
+  - python
+  - -m
+  - uvicorn
+  - uphora.backend.app:app
+  - --host
+  - 0.0.0.0
+  - --port
+  - 8000
+
+env:
+  - name: UC_CATALOG
+    value: amitabh_arora_catalog
+  - name: UC_SCHEMA
+    value: uphora_hackathon
+  - name: LAKEBASE_PROJECT_ID
+    value: uphora-hackathon-memory
+  - name: DATABRICKS_WAREHOUSE_ID
+    value: 9465acf928ae5952
+  - name: MLFLOW_EXPERIMENT_NAME
+    value: uphora-beauty-chat
+# DATABRICKS_TOKEN, DATABRICKS_HOST, and MLFLOW_TRACKING_URI are injected automatically by Databricks Apps.
