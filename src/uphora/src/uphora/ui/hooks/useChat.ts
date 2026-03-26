@@ -44,40 +44,27 @@ export function useChat(customerId: string) {
           }),
         });
 
-        const reader = response.body!.getReader();
-        const decoder = new TextDecoder();
+        const data = await response.json();
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+        if (data.text) {
+          setMessages((prev) => [
+            ...prev.slice(0, -1),
+            { role: "assistant", content: data.text },
+          ]);
+        } else if (data.error) {
+          setMessages((prev) => [
+            ...prev.slice(0, -1),
+            { role: "assistant", content: `⚠️ ${data.error.slice(0, 300)}` },
+          ]);
+        } else {
+          setMessages((prev) => [
+            ...prev.slice(0, -1),
+            { role: "assistant", content: "⚠️ No response from agent." },
+          ]);
+        }
 
-          const text = decoder.decode(value, { stream: true });
-          for (const line of text.split("\n")) {
-            if (!line.startsWith("data: ")) continue;
-            const data = line.slice(6).trim();
-            if (data === "[DONE]") break;
-
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.text) {
-                setMessages((prev) => [
-                  ...prev.slice(0, -1),
-                  { role: "assistant", content: prev[prev.length - 1].content + parsed.text },
-                ]);
-              }
-              if (parsed.error) {
-                setMessages((prev) => [
-                  ...prev.slice(0, -1),
-                  { role: "assistant", content: `⚠️ ${parsed.error}` },
-                ]);
-              }
-              if (parsed.products) {
-                setProducts(parsed.products);
-              }
-            } catch {
-              // ignore parse errors on partial chunks
-            }
-          }
+        if (data.products?.length) {
+          setProducts(data.products);
         }
       } finally {
         setIsStreaming(false);

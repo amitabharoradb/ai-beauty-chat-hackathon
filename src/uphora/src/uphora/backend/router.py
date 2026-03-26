@@ -45,79 +45,56 @@ def list_customers():
 
 
 @router.post("/chat", operation_id="chat")
-async def chat(request: ChatRequest) -> StreamingResponse:
-    async def event_stream():
+async def chat(request: ChatRequest):
+    """Returns JSON with the agent response — no streaming to avoid proxy buffering."""
+    loop = asyncio.get_running_loop()
+
+    def run_agent():
         try:
-            loop = asyncio.get_event_loop()
+            from langchain_core.messages import HumanMessage, AIMessage
+            from .agent.memory import load_memory_sync, load_session_summaries_sync
+            from .agent.graph import build_graph
+            from databricks_langchain import ChatDatabricks
 
-            def run_agent():
-                try:
-                    from langchain_core.messages import HumanMessage
-                    from .agent.memory import load_memory_sync, load_session_summaries_sync
-                    from .agent.graph import build_graph
-                    from databricks_langchain import ChatDatabricks
+            memory = load_memory_sync(request.customer_id)
+            summaries = load_session_summaries_sync(request.customer_id)
+            if summaries:
+                memory["session_summaries"] = summaries
 
-                    # Load customer memory
-                    memory = load_memory_sync(request.customer_id)
-                    summaries = load_session_summaries_sync(request.customer_id)
-                    if summaries:
-                        memory["session_summaries"] = summaries
+            history_msgs = [
+                HumanMessage(content=m.content) if m.role == "user" else AIMessage(content=m.content)
+                for m in request.history
+            ]
+            state = {
+                "customer_id": request.customer_id,
+                "messages": history_msgs + [HumanMessage(content=request.message)],
+                "intent": None,
+                "memory": memory,
+                "products_found": [],
+            }
 
-                    # Build state
-                    history_msgs = [
-                        HumanMessage(content=m.content) if m.role == "user"
-                        else __import__("langchain_core.messages", fromlist=["AIMessage"]).AIMessage(content=m.content)
-                        for m in request.history
-                    ]
-                    state = {
-                        "customer_id": request.customer_id,
-                        "messages": history_msgs + [HumanMessage(content=request.message)],
-                        "intent": None,
-                        "memory": memory,
-                        "products_found": [],
-                    }
+            llm = ChatDatabricks(endpoint="databricks-claude-sonnet-4-6", max_tokens=1024)
+            graph = build_graph(llm)
+            result = graph.invoke(state)
 
-                    # Run graph
-                    llm = ChatDatabricks(endpoint="databricks-claude-sonnet-4-6", max_tokens=1024)
-                    graph = build_graph(llm)
-                    result = graph.invoke(state)
+            messages_out = result.get("messages", [])
+            products = result.get("products_found", [])
+            text = ""
+            for msg in reversed(messages_out):
+                if hasattr(msg, "content") and msg.content and getattr(msg, "type", "") in ("ai", "AIMessage"):
+                    text = msg.content
+                    break
+            if not text:
+                for msg in reversed(messages_out):
+                    c = getattr(msg, "content", "")
+                    if c and c != request.message:
+                        text = c
+                        break
 
-                    # Extract last AI message
-                    messages = result.get("messages", [])
-                    products = result.get("products_found", [])
-                    text = ""
-                    for msg in reversed(messages):
-                        if hasattr(msg, "content") and getattr(msg, "type", "") == "ai":
-                            text = msg.content
-                            break
-                    if not text:
-                        # fallback: last message
-                        for msg in reversed(messages):
-                            if hasattr(msg, "content") and msg.content:
-                                text = msg.content
-                                break
-
-                    return ("ok", text, products)
-                except Exception as e:
-                    import traceback
-                    return ("error", f"{traceback.format_exc()}", [])
-
-            kind, text, products = await loop.run_in_executor(_executor, run_agent)
-
-            if kind == "ok":
-                yield f"data: {json.dumps({'text': text})}\n\n"
-                if products:
-                    yield f"data: {json.dumps({'products': products[:3]})}\n\n"
-            else:
-                yield f"data: {json.dumps({'error': text})}\n\n"
-
+            return {"text": text, "products": products[:3] if products else []}
         except Exception as e:
-            yield f"data: {json.dumps({'error': str(e)})}\n\n"
-        finally:
-            yield "data: [DONE]\n\n"
+            import traceback
+            return {"text": "", "error": traceback.format_exc()}
 
-    return StreamingResponse(
-        event_stream(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
-    )
+    result = await loop.run_in_executor(_executor, run_agent)
+    return result
