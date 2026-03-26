@@ -63,9 +63,11 @@ All-in-One Hybrid — the bot adapts per message:
 |------------|---------|
 | Agent framework | LangGraph (Python) |
 | Agent deployment | Databricks Apps (apx — React + FastAPI) |
-| Memory store | Databricks Lakebase Autoscaling (PostgreSQL) |
-| Product/customer data | Unity Catalog — catalog `amitabh_arora_catalog`, schema `uphora_hackathon` |
-| LLM | Claude Sonnet 4.6 via Databricks Foundation Model API — `w.serving_endpoints.query(name="databricks-claude-sonnet-4-6", stream=True)` using `databricks-sdk`, no extra package needed |
+| Memory store | Databricks Lakebase Autoscaling — project `uphora-hackathon-memory` |
+| Product/customer data | Unity Catalog — `amitabh_arora_catalog.uphora_hackathon` |
+| SQL warehouse | Serverless Large Warehouse (`9465acf928ae5952`) |
+| LLM | Claude Sonnet 4.6 via Databricks Foundation Model API (`databricks-claude-sonnet-4-6`) — `databricks-sdk` `w.serving_endpoints.query`, no extra API key |
+| Auth | Databricks profile `fevm-classic-stable-69enm7` (local dev); auto-injected inside Databricks Apps |
 | Fake data generation | Spark + Faker |
 
 ---

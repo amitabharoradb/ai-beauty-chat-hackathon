@@ -347,10 +347,10 @@ databricks jobs create --json '{
 databricks sql execute \
   --warehouse-id <warehouse-id> \
   --statement "SELECT table_name, COUNT(*) as cnt FROM (
-    SELECT 'customers' as table_name, COUNT(*) as cnt FROM amitabh_arora_catalog.uphora.customers
-    UNION ALL SELECT 'products', COUNT(*) FROM amitabh_arora_catalog.uphora.products
-    UNION ALL SELECT 'categories', COUNT(*) FROM amitabh_arora_catalog.uphora.categories
-    UNION ALL SELECT 'customer_products', COUNT(*) FROM amitabh_arora_catalog.uphora.customer_products
+    SELECT 'customers' as table_name, COUNT(*) as cnt FROM amitabh_arora_catalog.uphora_hackathon.customers
+    UNION ALL SELECT 'products', COUNT(*) FROM amitabh_arora_catalog.uphora_hackathon.products
+    UNION ALL SELECT 'categories', COUNT(*) FROM amitabh_arora_catalog.uphora_hackathon.categories
+    UNION ALL SELECT 'customer_products', COUNT(*) FROM amitabh_arora_catalog.uphora_hackathon.customer_products
   ) GROUP BY table_name"
 ```
 
