@@ -61,14 +61,14 @@ All-in-One Hybrid — the bot adapts per message:
 
 | Requirement | Decision |
 |------------|---------|
-| Agent framework | LangGraph (Python) |
-| Agent deployment | Databricks Apps (apx — React + FastAPI) |
+| Agent framework | **Mosaic AI Agent Framework** — `ResponsesAgent` (MLflow 3.0) wrapping LangGraph |
+| LLM | `ChatDatabricks(endpoint="databricks-claude-sonnet-4-6")` from `databricks-langchain` — Foundation Model API, no extra key |
+| Agent deployment | Databricks Apps (apx — React + FastAPI); NOT a Model Serving endpoint |
 | Memory store | Databricks Lakebase Autoscaling — project `uphora-hackathon-memory` |
 | Product/customer data | Unity Catalog — `amitabh_arora_catalog.uphora_hackathon` |
 | SQL warehouse | Serverless Large Warehouse (`9465acf928ae5952`) |
-| LLM | Claude Sonnet 4.6 via Databricks Foundation Model API (`databricks-claude-sonnet-4-6`) — `databricks-sdk` `w.serving_endpoints.query`, no extra API key |
 | Auth | Databricks profile `fevm-classic-stable-69enm7` (local dev); auto-injected inside Databricks Apps |
-| Observability | MLflow 3.0 tracing — `mlflow.langchain.autolog()` captures every LangGraph invocation as a trace |
+| Observability | MLflow 3.0 — `mlflow.langchain.autolog()` + `mlflow.models.set_model(AGENT)` |
 | Fake data generation | Spark + Faker |
 
 ---

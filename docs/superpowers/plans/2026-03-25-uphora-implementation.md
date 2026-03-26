@@ -6,7 +6,7 @@
 
 **Architecture:** LangGraph agent with 5 nodes (memory_loader, intent_router, advisor/shopper/coach, memory_writer) backed by Lakebase Autoscaling (PostgreSQL) for long-term memory and Unity Catalog Delta tables for product/customer data. apx (React + FastAPI) serves the warm-luxury chat UI with customer dropdown and SSE streaming. The graph builds a prompt+context state; FastAPI streams Claude's response directly for real-time token delivery.
 
-**Tech Stack:** Python 3.11+, LangGraph, MLflow 3.0 (`mlflow[genai]`, `mlflow.langchain.autolog()`), Databricks Foundation Model API (`databricks-claude-sonnet-4-6` via `databricks-sdk`), FastAPI, apx (React + Vite), psycopg3, Databricks SDK ≥0.81, Spark + Faker, Unity Catalog, Lakebase Autoscaling
+**Tech Stack:** Python 3.11+, **Mosaic AI Agent Framework** (`ResponsesAgent` from `mlflow.pyfunc`), LangGraph, `ChatDatabricks` from `databricks-langchain` (`databricks-claude-sonnet-4-6`), MLflow 3.0 (`mlflow[genai]`), FastAPI, apx (React + Vite), psycopg3, Databricks SDK ≥0.81, Spark + Faker, Unity Catalog, Lakebase Autoscaling
 
 ---
 
@@ -48,11 +48,12 @@ ai-beauty-chat-hackathon/
     │   ├── db.py                    # Lakebase async connection manager
     │   └── agent/
     │       ├── __init__.py
-    │       ├── state.py             # AgentState TypedDict
+    │       ├── state.py             # AgentState TypedDict (add_messages pattern)
     │       ├── tools.py             # search_products(), get_routine()
-    │       ├── memory.py            # load_memory(), save_memory()
-    │       ├── nodes.py             # all 5 LangGraph nodes
-    │       └── graph.py             # build_graph() → CompiledGraph
+    │       ├── memory.py            # load_memory_sync(), save_memory_sync()
+    │       ├── nodes.py             # node factory fns (take llm via closure)
+    │       ├── graph.py             # build_graph(llm) → CompiledGraph
+    │       └── agent.py             # UphoraBeautyAgent(ResponsesAgent) — Mosaic AI entry point
     └── ui/
         ├── routes/index.tsx         # main page (CustomerSelector + ChatWindow)
         ├── components/
@@ -91,6 +92,7 @@ In `src/uphora/pyproject.toml` (or root `pyproject.toml`), add to `[project.depe
 [project]
 dependencies = [
   "mlflow[genai]>=3.0",
+  "databricks-langchain>=0.4.0",
   "langgraph>=0.2.0",
   "databricks-sdk>=0.81.0",
   "psycopg[binary]>=3.0",
@@ -614,19 +616,20 @@ git commit -m "feat: lakebase setup script + 10 demo customers seeded"
 from src.uphora.backend.agent.state import AgentState, create_initial_state
 
 def test_create_initial_state_has_required_keys():
-    state = create_initial_state(customer_id="cust_00001", message="I need a serum")
+    from langchain_core.messages import HumanMessage
+    msgs = [HumanMessage(content="I need a serum")]
+    state = create_initial_state(customer_id="cust_00001", messages=msgs)
     assert state["customer_id"] == "cust_00001"
-    assert state["current_message"] == "I need a serum"
     assert state["intent"] is None
     assert state["memory"] == {}
     assert state["products_found"] == []
-    assert state["system_prompt"] == ""
-    assert state["claude_messages"] == []
-    assert state["session_id"] is not None
+    assert len(state["messages"]) == 1
 
-def test_state_has_conversation_history_field():
-    state = create_initial_state("cust_00001", "hello")
-    assert isinstance(state["conversation_history"], list)
+def test_state_messages_accumulate_with_add_messages():
+    from langchain_core.messages import HumanMessage, AIMessage
+    state = create_initial_state("cust_00001", [HumanMessage(content="hello")])
+    # add_messages merges new messages into existing sequence
+    assert len(state["messages"]) == 1
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -646,32 +649,24 @@ Expected: `ImportError` or `ModuleNotFoundError`
 
 ```python
 # src/uphora/backend/agent/state.py
-import uuid
-from typing import Any
+from typing import Any, Annotated, Sequence
 from typing_extensions import TypedDict
+from langgraph.graph.message import add_messages
 
 class AgentState(TypedDict):
     customer_id: str
-    current_message: str
-    session_id: str
-    intent: str | None                  # "advisor" | "shopper" | "coach"
-    memory: dict[str, Any]             # loaded from Lakebase
-    conversation_history: list[dict]   # [{"role": "user"|"assistant", "content": str}]
-    products_found: list[dict]         # products retrieved this turn
-    system_prompt: str                 # built by advisor/shopper/coach node
-    claude_messages: list[dict]        # ready to pass to Claude API
+    messages: Annotated[Sequence, add_messages]  # LangChain messages (Human/AI/System)
+    intent: str | None                            # "advisor" | "shopper" | "coach"
+    memory: dict[str, Any]                        # loaded from Lakebase
+    products_found: list[dict]                    # products retrieved this turn
 
-def create_initial_state(customer_id: str, message: str) -> AgentState:
+def create_initial_state(customer_id: str, messages: list) -> AgentState:
     return AgentState(
         customer_id=customer_id,
-        current_message=message,
-        session_id=str(uuid.uuid4()),
+        messages=messages,
         intent=None,
         memory={},
-        conversation_history=[],
         products_found=[],
-        system_prompt="",
-        claude_messages=[],
     )
 ```
 
@@ -845,7 +840,7 @@ git commit -m "feat: agent tools (search_products, get_routine)"
 
 ---
 
-### Task 6: Memory (Lakebase load/save)
+### Task 6: Memory (Lakebase load/save — sync, for use in LangGraph nodes)
 
 **Files:**
 - Create: `src/uphora/backend/agent/memory.py`
@@ -935,7 +930,15 @@ def _get_conn():
     )
 
 
+def load_memory_sync(customer_id: str) -> dict:
+    """Synchronous version — used by LangGraph nodes (ChatDatabricks is also sync)."""
+    return _load_memory_impl(customer_id)
+
 async def load_memory(customer_id: str) -> dict:
+    """Async wrapper for non-graph callers."""
+    return _load_memory_impl(customer_id)
+
+def _load_memory_impl(customer_id: str) -> dict:
     """Load long-term memory for a customer from Lakebase."""
     conn = _get_conn()
     try:
@@ -961,7 +964,14 @@ async def load_memory(customer_id: str) -> dict:
         conn.close()
 
 
+def save_memory_sync(customer_id: str, memory: dict, delta: dict) -> None:
+    """Synchronous version — used by FastAPI router after predict_stream."""
+    _save_memory_impl(customer_id, memory, delta)
+
 async def save_memory(customer_id: str, memory: dict, delta: dict) -> None:
+    _save_memory_impl(customer_id, memory, delta)
+
+def _save_memory_impl(customer_id: str, memory: dict, delta: dict) -> None:
     """Upsert memory delta back to Lakebase."""
     # Merge delta into memory
     merged = {**memory, **delta}
@@ -1017,7 +1027,13 @@ async def save_session_summary(customer_id: str, session_id: str, summary: str) 
         conn.close()
 
 
+def load_session_summaries_sync(customer_id: str) -> list[str]:
+    return _load_session_summaries_impl(customer_id)
+
 async def load_session_summaries(customer_id: str) -> list[str]:
+    return _load_session_summaries_impl(customer_id)
+
+def _load_session_summaries_impl(customer_id: str) -> list[str]:
     """Load the 5 most recent session summaries."""
     conn = _get_conn()
     try:
@@ -1061,66 +1077,78 @@ git commit -m "feat: lakebase memory load/save functions"
 ```python
 # tests/test_nodes.py
 import pytest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import MagicMock, patch
+from langchain_core.messages import HumanMessage, AIMessage
 from src.uphora.backend.agent.state import create_initial_state
 from src.uphora.backend.agent.nodes import (
-    memory_loader_node,
-    intent_router_node,
-    advisor_node,
-    shopper_node,
-    coach_node,
+    make_memory_loader_node,
+    make_intent_router_node,
+    make_advisor_node,
+    make_shopper_node,
+    make_coach_node,
 )
 
-@pytest.mark.asyncio
-async def test_memory_loader_populates_memory(sample_customer_memory):
-    state = create_initial_state("cust_00001", "I need help with my skin")
-    with patch("src.uphora.backend.agent.nodes.load_memory", AsyncMock(return_value=sample_customer_memory)):
-        result = await memory_loader_node(state)
+def _make_llm(response_text="Here are my recommendations."):
+    llm = MagicMock()
+    llm.invoke.return_value = AIMessage(content=response_text)
+    return llm
+
+def test_memory_loader_populates_memory(sample_customer_memory):
+    state = create_initial_state("cust_00001", [HumanMessage(content="I need help with my skin")])
+    node = make_memory_loader_node()
+    with patch("src.uphora.backend.agent.nodes.load_memory_sync", return_value=sample_customer_memory), \
+         patch("src.uphora.backend.agent.nodes.load_session_summaries_sync", return_value=[]):
+        result = node(state)
     assert result["memory"]["skin_profile"]["type"] == "oily"
 
-@pytest.mark.asyncio
-async def test_intent_router_classifies_skincare_as_advisor():
-    state = create_initial_state("cust_00001", "What serum should I use for acne?")
-    state["memory"] = {"skin_profile": {"type": "oily"}}
-    result = await intent_router_node(state)
-    assert result["intent"] in ("advisor", "shopper", "coach")
-
-@pytest.mark.asyncio
-async def test_intent_router_classifies_product_search_as_shopper():
-    state = create_initial_state("cust_00001", "Show me all your moisturizers under $50")
-    state["memory"] = {}
-    result = await intent_router_node(state)
+def test_intent_router_classifies_product_search_as_shopper():
+    state = create_initial_state("cust_00001", [HumanMessage(content="Show me all moisturizers under $50")])
+    node = make_intent_router_node()
+    result = node(state)
     assert result["intent"] == "shopper"
 
-@pytest.mark.asyncio
-async def test_advisor_node_sets_system_prompt(sample_customer_memory, sample_products):
-    state = create_initial_state("cust_00001", "What should I use for oily skin?")
+def test_intent_router_classifies_routine_question_as_coach():
+    state = create_initial_state("cust_00001", [HumanMessage(content="How to build a routine for dry skin?")])
+    node = make_intent_router_node()
+    result = node(state)
+    assert result["intent"] == "coach"
+
+def test_intent_router_defaults_to_advisor():
+    state = create_initial_state("cust_00001", [HumanMessage(content="My skin is oily and I break out")])
+    node = make_intent_router_node()
+    result = node(state)
+    assert result["intent"] == "advisor"
+
+def test_advisor_node_calls_llm_and_returns_products(sample_customer_memory, sample_products):
+    llm = _make_llm("I recommend the Hydra-Gel Cleanser for your oily skin.")
+    state = create_initial_state("cust_00001", [HumanMessage(content="What should I use for oily skin?")])
     state["memory"] = sample_customer_memory
-    state["intent"] = "advisor"
+    node = make_advisor_node(llm)
     with patch("src.uphora.backend.agent.nodes.search_products", return_value=sample_products):
-        result = await advisor_node(state)
-    assert len(result["system_prompt"]) > 50
-    assert len(result["claude_messages"]) > 0
+        result = node(state)
+    assert llm.invoke.called
+    assert len(result["messages"]) == 1
+    assert isinstance(result["messages"][0], AIMessage)
     assert result["products_found"] == sample_products
 
-@pytest.mark.asyncio
-async def test_shopper_node_sets_system_prompt(sample_customer_memory, sample_products):
-    state = create_initial_state("cust_00001", "Show me serums")
+def test_shopper_node_calls_llm_and_returns_products(sample_customer_memory, sample_products):
+    llm = _make_llm("Here are our serums:")
+    state = create_initial_state("cust_00001", [HumanMessage(content="Show me serums")])
     state["memory"] = sample_customer_memory
-    state["intent"] = "shopper"
+    node = make_shopper_node(llm)
     with patch("src.uphora.backend.agent.nodes.search_products", return_value=sample_products):
-        result = await shopper_node(state)
-    assert len(result["system_prompt"]) > 50
-    assert len(result["products_found"]) > 0
+        result = node(state)
+    assert llm.invoke.called
+    assert result["products_found"] == sample_products
 
-@pytest.mark.asyncio
-async def test_coach_node_sets_system_prompt(sample_customer_memory):
-    state = create_initial_state("cust_00001", "Teach me about double cleansing")
+def test_coach_node_calls_llm_returns_no_products(sample_customer_memory):
+    llm = _make_llm("Double cleansing means using an oil-based then water-based cleanser.")
+    state = create_initial_state("cust_00001", [HumanMessage(content="Teach me about double cleansing")])
     state["memory"] = sample_customer_memory
-    state["intent"] = "coach"
-    result = await coach_node(state)
-    assert len(result["system_prompt"]) > 50
-    assert "coach" in result["system_prompt"].lower() or "routine" in result["system_prompt"].lower()
+    node = make_coach_node(llm)
+    result = node(state)
+    assert llm.invoke.called
+    assert result["products_found"] == []
 ```
 
 - [ ] **Step 2: Run tests to verify they fail**
@@ -1136,12 +1164,12 @@ Expected: ImportError
 ```python
 # src/uphora/backend/agent/nodes.py
 """
-LangGraph nodes for the Uphora beauty agent.
-Note: Nodes build system_prompt and claude_messages but do NOT call Claude.
-      Claude is streamed from the FastAPI SSE endpoint after graph.invoke().
+LangGraph node factory functions for the Uphora beauty agent.
+All nodes are synchronous. Each specialist node calls the LLM directly via ChatDatabricks.
+Nodes are created via make_*_node(llm) closures so the LLM is injected by build_graph().
 """
-import json
-from .memory import load_memory, load_session_summaries
+from langchain_core.messages import SystemMessage
+from .memory import load_memory_sync, load_session_summaries_sync
 from .tools import search_products, get_routine
 from .state import AgentState
 
@@ -1179,63 +1207,59 @@ def _format_products_for_prompt(products: list[dict]) -> str:
     return "\n".join(lines)
 
 
-# ── nodes ──────────────────────────────────────────────────────────────────
+# ── node factories (LLM injected via closure from build_graph) ─────────────
 
-async def memory_loader_node(state: AgentState) -> dict:
+def make_memory_loader_node():
     """Load customer long-term memory from Lakebase."""
-    customer_id = state["customer_id"]
-    memory = await load_memory(customer_id)
-    summaries = await load_session_summaries(customer_id)
-    if summaries:
-        memory["session_summaries"] = summaries
-    return {"memory": memory}
+    def memory_loader_node(state: AgentState) -> dict:
+        customer_id = state["customer_id"]
+        memory = load_memory_sync(customer_id)
+        summaries = load_session_summaries_sync(customer_id)
+        if summaries:
+            memory["session_summaries"] = summaries
+        return {"memory": memory}
+    return memory_loader_node
 
 
-async def intent_router_node(state: AgentState) -> dict:
-    """
-    Rule-based intent classification. Fast, no LLM call.
-    - "shopper"  → user wants to browse/compare products
-    - "coach"    → user wants education, routines, tips
-    - "advisor"  → default: personalized recommendation
-    """
-    msg = state["current_message"].lower()
+def make_intent_router_node():
+    """Rule-based intent classification — no LLM call, fast."""
+    def intent_router_node(state: AgentState) -> dict:
+        last_msg = state["messages"][-1]
+        msg = (last_msg.content if hasattr(last_msg, "content") else str(last_msg)).lower()
 
-    shopper_keywords = ["show me", "browse", "find", "search", "compare", "all your", "list", "under $", "price"]
-    coach_keywords = ["teach", "how to", "explain", "what is", "routine", "tip", "tutorial", "step by step", "difference between"]
+        shopper_keywords = ["show me", "browse", "find", "search", "compare", "all your", "list", "under $", "price"]
+        coach_keywords = ["teach", "how to", "explain", "what is", "routine", "tip", "tutorial", "step by step", "difference between"]
 
-    if any(kw in msg for kw in shopper_keywords):
-        return {"intent": "shopper"}
-    if any(kw in msg for kw in coach_keywords):
-        return {"intent": "coach"}
-    return {"intent": "advisor"}
+        if any(kw in msg for kw in shopper_keywords):
+            return {"intent": "shopper"}
+        if any(kw in msg for kw in coach_keywords):
+            return {"intent": "coach"}
+        return {"intent": "advisor"}
+    return intent_router_node
 
 
-async def advisor_node(state: AgentState) -> dict:
-    """Build personalized recommendation prompt based on customer profile."""
-    memory = state["memory"]
-    message = state["current_message"]
-    history = state["conversation_history"]
+def make_advisor_node(llm):
+    """Personalized recommendation node — calls LLM via ChatDatabricks."""
+    def advisor_node(state: AgentState) -> dict:
+        memory = state["memory"]
+        prefs = memory.get("preferences", {})
+        filters = {
+            "vegan": prefs.get("vegan", False),
+            "fragrance_free": prefs.get("fragrance_free", False),
+        }
+        if prefs.get("budget_range"):
+            filters["max_price"] = prefs["budget_range"][1]
 
-    # Infer filters from preferences
-    prefs = memory.get("preferences", {})
-    filters = {
-        "vegan": prefs.get("vegan", False),
-        "fragrance_free": prefs.get("fragrance_free", False),
-    }
-    if prefs.get("budget_range"):
-        filters["max_price"] = prefs["budget_range"][1]
+        affinities = memory.get("category_affinities", ["skincare"])
+        last_msg = state["messages"][-1]
+        query = last_msg.content if hasattr(last_msg, "content") else ""
+        products = search_products(query=query, category=affinities[0], filters=filters)
 
-    # Get top category from affinities
-    affinities = memory.get("category_affinities", ["skincare"])
-    top_category = affinities[0] if affinities else "skincare"
+        skin_summary = _format_skin_profile(memory)
+        goals = memory.get("goals", [])
+        product_list = _format_products_for_prompt(products)
 
-    products = search_products(query=message, category=top_category, filters=filters)
-
-    skin_summary = _format_skin_profile(memory)
-    goals = memory.get("goals", [])
-    product_list = _format_products_for_prompt(products)
-
-    system_prompt = f"""You are Ava, Uphora's personal beauty advisor. You give warm, expert, personalized recommendations.
+        system_prompt = f"""You are Ava, Uphora's personal beauty advisor. Warm, expert, personalized.
 
 Customer profile:
 {skin_summary}
@@ -1245,99 +1269,72 @@ Relevant Uphora products:
 {product_list}
 
 Guidelines:
-- Always reference the customer's specific skin type and concerns.
-- Recommend 1-3 products maximum per response. Be specific about why each suits their profile.
-- If a product conflicts with their sensitivities, never recommend it.
+- Reference customer's skin type and concerns specifically.
+- Recommend 1-3 products max, explain why each fits their profile.
+- Never recommend products that conflict with their sensitivities.
 - End with one follow-up question to deepen personalization.
-- Keep tone warm, expert, and concise. No filler phrases."""
+- Tone: warm, expert, concise."""
 
-    claude_messages = [
-        *[{"role": m["role"], "content": m["content"]} for m in history],
-        {"role": "user", "content": message},
-    ]
-
-    return {
-        "system_prompt": system_prompt,
-        "claude_messages": claude_messages,
-        "products_found": products,
-    }
+        response = llm.invoke([SystemMessage(content=system_prompt)] + list(state["messages"]))
+        return {"messages": [response], "products_found": products}
+    return advisor_node
 
 
-async def shopper_node(state: AgentState) -> dict:
-    """Build product discovery prompt."""
-    memory = state["memory"]
-    message = state["current_message"]
-    history = state["conversation_history"]
+def make_shopper_node(llm):
+    """Product discovery node — calls LLM via ChatDatabricks."""
+    def shopper_node(state: AgentState) -> dict:
+        memory = state["memory"]
+        prefs = memory.get("preferences", {})
+        filters = {"vegan": prefs.get("vegan", False), "fragrance_free": prefs.get("fragrance_free", False)}
+        last_msg = state["messages"][-1]
+        query = last_msg.content if hasattr(last_msg, "content") else ""
+        products = search_products(query=query, category=None, filters=filters, limit=6)
+        product_list = _format_products_for_prompt(products)
 
-    prefs = memory.get("preferences", {})
-    filters = {
-        "vegan": prefs.get("vegan", False),
-        "fragrance_free": prefs.get("fragrance_free", False),
-    }
+        system_prompt = f"""You are Ava, Uphora's shopping assistant.
 
-    products = search_products(query=message, category=None, filters=filters, limit=6)
-    product_list = _format_products_for_prompt(products)
-
-    system_prompt = f"""You are Ava, Uphora's beauty shopping assistant. Help customers discover and compare products.
-
-Available Uphora products matching this request:
+Available products:
 {product_list}
 
 Guidelines:
-- Present products clearly with price and key benefit.
-- Offer to narrow down by skin type, concern, or budget if the list is long.
-- Never invent products — only reference those listed above.
-- Keep tone helpful and efficient."""
+- Present products with price and key benefit.
+- Never invent products — only reference those listed.
+- Offer to narrow by skin type, concern, or budget.
+- Tone: helpful and efficient."""
 
-    claude_messages = [
-        *[{"role": m["role"], "content": m["content"]} for m in history],
-        {"role": "user", "content": message},
-    ]
-
-    return {
-        "system_prompt": system_prompt,
-        "claude_messages": claude_messages,
-        "products_found": products,
-    }
+        response = llm.invoke([SystemMessage(content=system_prompt)] + list(state["messages"]))
+        return {"messages": [response], "products_found": products}
+    return shopper_node
 
 
-async def coach_node(state: AgentState) -> dict:
-    """Build beauty education and routine coaching prompt."""
-    memory = state["memory"]
-    message = state["current_message"]
-    history = state["conversation_history"]
+def make_coach_node(llm):
+    """Beauty education and routine coaching node — calls LLM via ChatDatabricks."""
+    def coach_node(state: AgentState) -> dict:
+        memory = state["memory"]
+        skin_summary = _format_skin_profile(memory)
+        routine = get_routine(memory)
+        am = " → ".join(routine["am"]) if routine["am"] else "not set"
+        pm = " → ".join(routine["pm"]) if routine["pm"] else "not set"
 
-    skin_summary = _format_skin_profile(memory)
-    routine = get_routine(memory)
-    am_routine = " → ".join(routine["am"]) if routine["am"] else "not set"
-    pm_routine = " → ".join(routine["pm"]) if routine["pm"] else "not set"
-
-    system_prompt = f"""You are Ava, Uphora's beauty coach. You educate customers on skincare routines, techniques, and ingredients.
+        system_prompt = f"""You are Ava, Uphora's beauty coach.
 
 Customer profile:
 {skin_summary}
 
-Their current routines:
-AM: {am_routine}
-PM: {pm_routine}
+Current routines:
+AM: {am}
+PM: {pm}
 
 Guidelines:
-- Explain concepts clearly — assume the customer is learning.
-- Connect advice to their specific skin profile when relevant.
-- Suggest Uphora products only when directly applicable (do not force it).
-- Keep responses focused, warm, and educational.
-- Use numbered steps for routines."""
+- Explain concepts clearly; assume the customer is learning.
+- Connect advice to their skin profile.
+- Suggest Uphora products only when directly applicable.
+- Use numbered steps for routines.
+- Tone: focused, warm, educational."""
 
-    claude_messages = [
-        *[{"role": m["role"], "content": m["content"]} for m in history],
-        {"role": "user", "content": message},
-    ]
-
-    return {
-        "system_prompt": system_prompt,
-        "claude_messages": claude_messages,
-        "products_found": [],
-    }
+        response = llm.invoke([SystemMessage(content=system_prompt)] + list(state["messages"]))
+        return {"messages": [response], "products_found": []}
+    return coach_node
 ```
 
 - [ ] **Step 4: Run tests to verify they pass**
@@ -1357,45 +1354,78 @@ git commit -m "feat: langgraph nodes (memory_loader, intent_router, advisor, sho
 
 ---
 
-### Task 8: LangGraph Graph Assembly
+### Task 8: LangGraph Graph + Mosaic AI Agent (ResponsesAgent)
 
 **Files:**
 - Create: `src/uphora/backend/agent/graph.py`
+- Create: `src/uphora/backend/agent/agent.py`
 
 - [ ] **Step 1: Write the failing test**
 
 ```python
 # tests/test_graph.py
 import pytest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import MagicMock, patch
+from langchain_core.messages import HumanMessage, AIMessage
 from src.uphora.backend.agent.graph import build_graph
-from src.uphora.backend.agent.state import create_initial_state
+from src.uphora.backend.agent.agent import UphoraBeautyAgent
+from mlflow.types.responses import ResponsesAgentRequest, ChatContext
 
-@pytest.mark.asyncio
-async def test_graph_runs_end_to_end(sample_customer_memory, sample_products):
-    graph = build_graph()
-    state = create_initial_state("cust_00001", "What serum for oily skin?")
+def _mock_llm(text="Great recommendation!"):
+    llm = MagicMock()
+    llm.invoke.return_value = AIMessage(content=text)
+    return llm
 
-    with patch("src.uphora.backend.agent.nodes.load_memory", AsyncMock(return_value=sample_customer_memory)), \
-         patch("src.uphora.backend.agent.nodes.load_session_summaries", AsyncMock(return_value=[])), \
+def test_graph_runs_end_to_end(sample_customer_memory, sample_products):
+    llm = _mock_llm()
+    graph = build_graph(llm)
+    state = {
+        "customer_id": "cust_00001",
+        "messages": [HumanMessage(content="What serum for oily skin?")],
+        "intent": None,
+        "memory": {},
+        "products_found": [],
+    }
+    with patch("src.uphora.backend.agent.nodes.load_memory_sync", return_value=sample_customer_memory), \
+         patch("src.uphora.backend.agent.nodes.load_session_summaries_sync", return_value=[]), \
          patch("src.uphora.backend.agent.nodes.search_products", return_value=sample_products):
-        result = await graph.ainvoke(state)
+        result = graph.invoke(state)
 
     assert result["intent"] in ("advisor", "shopper", "coach")
-    assert len(result["system_prompt"]) > 0
-    assert len(result["claude_messages"]) > 0
+    assert len(result["messages"]) >= 2   # HumanMessage + AIMessage
+    assert llm.invoke.called
 
-@pytest.mark.asyncio
-async def test_graph_routes_to_shopper_for_browse(sample_customer_memory, sample_products):
-    graph = build_graph()
-    state = create_initial_state("cust_00001", "Show me all your serums under $60")
-
-    with patch("src.uphora.backend.agent.nodes.load_memory", AsyncMock(return_value=sample_customer_memory)), \
-         patch("src.uphora.backend.agent.nodes.load_session_summaries", AsyncMock(return_value=[])), \
+def test_graph_routes_to_shopper_for_browse(sample_customer_memory, sample_products):
+    llm = _mock_llm()
+    graph = build_graph(llm)
+    state = {
+        "customer_id": "cust_00001",
+        "messages": [HumanMessage(content="Show me all your serums under $60")],
+        "intent": None,
+        "memory": {},
+        "products_found": [],
+    }
+    with patch("src.uphora.backend.agent.nodes.load_memory_sync", return_value=sample_customer_memory), \
+         patch("src.uphora.backend.agent.nodes.load_session_summaries_sync", return_value=[]), \
          patch("src.uphora.backend.agent.nodes.search_products", return_value=sample_products):
-        result = await graph.ainvoke(state)
+        result = graph.invoke(state)
 
     assert result["intent"] == "shopper"
+
+def test_uphora_agent_predict_returns_response(sample_customer_memory, sample_products):
+    with patch("src.uphora.backend.agent.agent.ChatDatabricks") as MockLLM, \
+         patch("src.uphora.backend.agent.nodes.load_memory_sync", return_value=sample_customer_memory), \
+         patch("src.uphora.backend.agent.nodes.load_session_summaries_sync", return_value=[]), \
+         patch("src.uphora.backend.agent.nodes.search_products", return_value=sample_products):
+        MockLLM.return_value.invoke.return_value = AIMessage(content="Here is my advice!")
+        agent = UphoraBeautyAgent()
+        request = ResponsesAgentRequest(
+            input=[{"role": "user", "content": "What serum for oily skin?"}],
+            context=ChatContext(conversation_id="cust_00001")
+        )
+        response = agent.predict(request)
+
+    assert len(response.output) > 0
 ```
 
 - [ ] **Step 2: Run tests to verify they fail**
@@ -1406,40 +1436,32 @@ pytest tests/test_graph.py -v
 
 Expected: ImportError
 
-- [ ] **Step 3: Implement graph**
+- [ ] **Step 3: Implement graph.py (pure graph, LLM injected)**
 
 ```python
 # src/uphora/backend/agent/graph.py
-import os
-import mlflow
 from langgraph.graph import StateGraph, END
 from .state import AgentState
 from .nodes import (
-    memory_loader_node,
-    intent_router_node,
-    advisor_node,
-    shopper_node,
-    coach_node,
+    make_memory_loader_node,
+    make_intent_router_node,
+    make_advisor_node,
+    make_shopper_node,
+    make_coach_node,
 )
-
-# MLflow 3.0 — auto-traces every LangGraph invocation
-# Tracking URI and credentials are auto-configured inside Databricks Apps.
-# For local dev, set DATABRICKS_CONFIG_PROFILE=fevm-classic-stable-69enm7
-mlflow.langchain.autolog()
-mlflow.set_experiment(os.getenv("MLFLOW_EXPERIMENT_NAME", "uphora-beauty-chat"))
-
 
 def _route_intent(state: AgentState) -> str:
     return state["intent"] or "advisor"
 
-def build_graph():
+def build_graph(llm):
+    """Build and compile the LangGraph agent graph with injected LLM."""
     g = StateGraph(AgentState)
 
-    g.add_node("memory_loader",  memory_loader_node)
-    g.add_node("intent_router",  intent_router_node)
-    g.add_node("advisor",        advisor_node)
-    g.add_node("shopper",        shopper_node)
-    g.add_node("coach",          coach_node)
+    g.add_node("memory_loader", make_memory_loader_node())
+    g.add_node("intent_router", make_intent_router_node())
+    g.add_node("advisor",       make_advisor_node(llm))
+    g.add_node("shopper",       make_shopper_node(llm))
+    g.add_node("coach",         make_coach_node(llm))
 
     g.set_entry_point("memory_loader")
     g.add_edge("memory_loader", "intent_router")
@@ -1453,6 +1475,91 @@ def build_graph():
     g.add_edge("coach",   END)
 
     return g.compile()
+```
+
+- [ ] **Step 4: Implement agent.py (Mosaic AI Agent Framework — ResponsesAgent)**
+
+```python
+# src/uphora/backend/agent/agent.py
+"""
+Mosaic AI Agent Framework entry point.
+UphoraBeautyAgent wraps the LangGraph graph in a ResponsesAgent for standardized
+input/output, MLflow tracing, and future model serving compatibility.
+Deployed on Databricks Apps (not a Model Serving endpoint).
+"""
+import os
+import mlflow
+from mlflow.pyfunc import ResponsesAgent
+from mlflow.types.responses import (
+    ResponsesAgentRequest,
+    ResponsesAgentResponse,
+    ResponsesAgentStreamEvent,
+    output_to_responses_items_stream,
+    to_chat_completions_input,
+)
+from databricks_langchain import ChatDatabricks
+from .graph import build_graph
+from .memory import save_memory_sync
+
+LLM_ENDPOINT = "databricks-claude-sonnet-4-6"
+
+class UphoraBeautyAgent(ResponsesAgent):
+    def __init__(self):
+        self.llm = ChatDatabricks(endpoint=LLM_ENDPOINT, max_tokens=1024)
+        self._graph = build_graph(self.llm)
+        self._last_products: list[dict] = []   # products from most recent turn
+
+    def predict(self, request: ResponsesAgentRequest) -> ResponsesAgentResponse:
+        outputs = [
+            event.item
+            for event in self.predict_stream(request)
+            if event.type == "response.output_item.done"
+        ]
+        return ResponsesAgentResponse(output=outputs)
+
+    def predict_stream(self, request: ResponsesAgentRequest):
+        customer_id = (request.context.conversation_id
+                       if request.context else "demo")
+
+        messages = to_chat_completions_input(
+            [m.model_dump() for m in request.input]
+        )
+
+        state = {
+            "customer_id": customer_id,
+            "messages": messages,
+            "intent": None,
+            "memory": {},
+            "products_found": [],
+        }
+
+        self._last_products = []
+
+        for event in self._graph.stream(state, stream_mode=["updates"]):
+            if event[0] == "updates":
+                for node_name, node_data in event[1].items():
+                    # Capture products from specialist nodes
+                    if node_data.get("products_found"):
+                        self._last_products = node_data["products_found"]
+                    # Stream LLM response tokens
+                    if node_data.get("messages"):
+                        yield from output_to_responses_items_stream(
+                            node_data["messages"]
+                        )
+
+    def get_last_products(self) -> list[dict]:
+        """Return products found in the most recent predict_stream call."""
+        return self._last_products
+
+
+# ── MLflow 3.0 setup ───────────────────────────────────────────────────────
+# autolog traces every LangGraph + ChatDatabricks call automatically.
+# Tracking URI is auto-configured inside Databricks Apps via MLFLOW_TRACKING_URI.
+mlflow.langchain.autolog()
+mlflow.set_experiment(os.getenv("MLFLOW_EXPERIMENT_NAME", "uphora-beauty-chat"))
+
+AGENT = UphoraBeautyAgent()
+mlflow.models.set_model(AGENT)
 ```
 
 - [ ] **Step 4: Run tests to verify they pass**
@@ -1620,32 +1727,23 @@ def test_list_customers_returns_10(client):
     assert len(data) == 10
     assert data[0]["id"] == "cust_00001"
 
-def test_chat_returns_sse_stream(client, sample_customer_memory, sample_products):
-    with patch("src.uphora.backend.router.GRAPH") as mock_graph, \
-         patch("src.uphora.backend.router.w") as mock_w, \
-         patch("src.uphora.backend.router.save_memory", AsyncMock()):
+def test_chat_returns_sse_stream(client, sample_products):
+    from mlflow.types.responses import ResponsesAgentStreamEvent
+    from mlflow.types.responses import ResponsesAgentOutputItem
 
-        # Mock graph.ainvoke
-        mock_graph.ainvoke = AsyncMock(return_value={
-            "system_prompt": "You are Ava...",
-            "claude_messages": [{"role": "user", "content": "Hi"}],
-            "products_found": sample_products,
-            "memory": sample_customer_memory,
-            "intent": "advisor",
-            "session_id": "test-session",
-        })
+    # Build a fake text output item
+    text_item = MagicMock()
+    text_item.text = "Hello there!"
+    fake_event = MagicMock()
+    fake_event.type = "response.output_item.done"
+    fake_event.item = text_item
 
-        # Mock Databricks SDK streaming chunks
-        def make_chunk(text):
-            chunk = MagicMock()
-            chunk.choices = [MagicMock()]
-            chunk.choices[0].delta.content = text
-            return chunk
+    with patch("src.uphora.backend.router.AGENT") as mock_agent, \
+         patch("src.uphora.backend.router.save_memory_sync"):
 
-        mock_w.serving_endpoints.query.return_value = iter([
-            make_chunk("Hello "),
-            make_chunk("there!"),
-        ])
+        mock_agent.predict_stream.return_value = iter([fake_event])
+        mock_agent.get_last_products.return_value = sample_products[:2]
+        mock_agent._graph.get_state.return_value.values = {"memory": {}}
 
         resp = client.post("/api/chat", json={
             "customer_id": "cust_00001",
@@ -1671,19 +1769,13 @@ Expected: ImportError or 404
 # src/uphora/backend/router.py
 import json
 import os
-from databricks.sdk import WorkspaceClient
-from fastapi import Request
 from fastapi.responses import StreamingResponse
+from mlflow.types.responses import ResponsesAgentRequest, ChatContext
 from .core import create_router
 from .models import CustomerOut, ChatRequest
-from .agent.graph import build_graph
-from .agent.memory import save_memory
+from .agent.agent import AGENT
+from .agent.memory import save_memory_sync
 from .db import db_manager
-
-GRAPH = build_graph()
-
-# Uses DATABRICKS_CONFIG_PROFILE env var locally; auto-configured inside Databricks Apps
-w = WorkspaceClient()
 
 router = create_router()
 
@@ -1719,47 +1811,43 @@ def list_customers():
 @router.post("/chat", operation_id="chat")
 async def chat(request: ChatRequest) -> StreamingResponse:
     async def event_stream():
-        # 1. Build state and run graph (routing + prompt building)
-        from .agent.state import create_initial_state
-        state = create_initial_state(request.customer_id, request.message)
-        state["conversation_history"] = [
-            {"role": m.role, "content": m.content} for m in request.history
-        ]
-        final_state = await GRAPH.ainvoke(state)
-
-        # 2. Stream Claude response via Databricks Foundation Model API
-        full_response = ""
-        for chunk in w.serving_endpoints.query(
-            name="databricks-claude-sonnet-4-6",
-            messages=[
-                {"role": "system", "content": final_state["system_prompt"]},
-                *final_state["claude_messages"],
+        # 1. Build ResponsesAgentRequest (Mosaic AI Agent Framework)
+        agent_request = ResponsesAgentRequest(
+            input=[
+                *[{"role": m.role, "content": m.content} for m in request.history],
+                {"role": "user", "content": request.message},
             ],
-            max_tokens=1024,
-            stream=True,
-        ):
-            if chunk.choices:
-                text = chunk.choices[0].delta.content or ""
-                if text:
-                    full_response += text
-                    yield f"data: {json.dumps({'text': text})}\n\n"
+            context=ChatContext(conversation_id=request.customer_id),
+        )
 
-        # 3. Yield product cards
-        products = final_state.get("products_found", [])
+        # 2. Stream via UphoraBeautyAgent.predict_stream()
+        #    ResponsesAgent yields ResponsesAgentStreamEvent items
+        import asyncio
+        loop = asyncio.get_event_loop()
+
+        def _run_stream():
+            for event in AGENT.predict_stream(agent_request):
+                yield event
+
+        for event in AGENT.predict_stream(agent_request):
+            if event.type == "response.output_item.done" and hasattr(event.item, "text"):
+                yield f"data: {json.dumps({'text': event.item.text})}\n\n"
+
+        # 3. Yield product cards from last predict_stream run
+        products = AGENT.get_last_products()
         if products:
             yield f"data: {json.dumps({'products': products[:3]})}\n\n"
 
-        # 4. Save memory delta (fire and forget — don't block stream end)
+        # 4. Persist memory delta (recommended products)
         recommended_ids = [p["id"] for p in products]
-        memory = final_state.get("memory", {})
-        existing_recommended = memory.get("product_history", {}).get("recommended", [])
-        delta = {
-            "product_history": {
+        if recommended_ids:
+            memory = AGENT._graph.get_state({"configurable": {}}).values.get("memory", {}) or {}
+            existing = memory.get("product_history", {}).get("recommended", [])
+            delta = {"product_history": {
                 **memory.get("product_history", {}),
-                "recommended": list(set(existing_recommended + recommended_ids)),
-            }
-        }
-        await save_memory(request.customer_id, memory, delta)
+                "recommended": list(set(existing + recommended_ids)),
+            }}
+            save_memory_sync(request.customer_id, memory, delta)
 
         yield "data: [DONE]\n\n"
 
